@@ -2,13 +2,20 @@
 // Created by Dylan on 20/09/2016.
 //
 
-#ifndef COMPTEUR_IMAGEMANAGER_H
-#define COMPTEUR_IMAGEMANAGER_H
+#ifndef IMAGEMANAGER_IMAGEMANAGER_H
+#define IMAGEMANAGER_IMAGEMANAGER_H
 
 
 class ImageManager {
+public:
+    void loadPPM();
 
+    void loadPGM();
+
+    void savePPM();
+
+    void savePGM();
 };
 
 
-#endif //COMPTEUR_IMAGEMANAGER_H
+#endif //IMAGEMANAGER_IMAGEMANAGER_H
