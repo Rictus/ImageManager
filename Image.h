@@ -6,22 +6,25 @@
 #define IMAGEMANAGER_IMAGEMANAGER_H
 
 #include <iostream>
-#include "NRC/def.h"
-#include "NRC/nrio.h"
-#include "NRC/nralloc.h"
-#include "NRC/nrarith.h"
+#include <fstream>
 
 using namespace std;
-
+typedef unsigned char byte;
 class Image {
-private:
-    int _width;
-    int _height;
+protected:
+    long _width;
+    long _height;
+    long _gris;
     string _filename;
-    string _header;
-
+    string _type; //P5, P6, ...
+    fstream _file;
+    ifstream imageReader;
 public:
     Image(char *_filename);
+
+    string filename();
+
+    void close();
 
 private:
     void readHeader();
