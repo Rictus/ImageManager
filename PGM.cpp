@@ -45,12 +45,11 @@ byte **PGM::seeMatrix() {
     return this->_image;
 }
 
-void PGM::save(char *outputFilename) {
+void PGM::save(char* outputFilename) {
     ofstream imageWriter = Image::writeHeader(outputFilename);
     for (long i = 0; i < Image::_height; i += 1) {
-        this->_image[i] = new byte[Image::_width];
         for (long j = 0; j < Image::_width; j += 1) {
-            imageWriter << this->_image[i][j];
+            imageWriter << this->_image[j][i];
         }
     }
     imageWriter.close();
