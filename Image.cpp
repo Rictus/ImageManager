@@ -26,9 +26,7 @@ void Image::readHeader() {
     int order = 0;
     while (!_imageReader.eof() && order < 3) {
         getline(_imageReader, inputLine);
-        cout << "" << endl;
         if (inputLine.at(0) == '#') {
-
         } else {
             switch (order) {
                 case 0: {
@@ -69,12 +67,10 @@ void Image::close() {
 
 ofstream Image::writeHeader(string outputFilename) {
     ofstream imageWriter;
-    // Check if the file is automatically created
-    // If the file exist, it should delete the content
     imageWriter.open(outputFilename, std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
-    imageWriter << this->_type;
-    imageWriter << this->_width + " " + this->_height;
-    imageWriter << this->_gris;
+    imageWriter << this->_type << endl;
+    imageWriter << this->_width + " " + this->_height << endl;
+    imageWriter << this->_gris << endl;
 
     return imageWriter;
 }

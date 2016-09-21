@@ -4,7 +4,7 @@ project(ImageManager)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 #set(NRC_SOURCE_FILES NRC/def.h NRC/nralloc.c NRC/nralloc.h NRC/nrarith.c NRC/nrarith.h NRC/nrio.c NRC/nrio.h)
-set(SOURCE_FILES PGM.cpp PGM.h FileException.h Image.cpp Image.h main.cpp ImageFormatException.h)
+set(SOURCE_FILES PGM.cpp PGM.h FileException.h ImageFormatException.h Image.cpp Image.h main.cpp)
 
 add_executable(ImageManager ${SOURCE_FILES})
 

@@ -12,7 +12,7 @@ void loadSavePPM();
 
 void loadSavePGM();
 
-int main(int argc, char *argv) {
+int main(int argc, char *argv[]) {
 //    loadSavePGM();
 //    loadSavePPM();
     char *testFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\images\\Route3.pgm";
@@ -24,15 +24,9 @@ int main(int argc, char *argv) {
 }
 
 void loadSavePPM() {
-    char *testFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\images\\route0.ppm";
-    char *outputFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\route0.ppm";
-    Image im(testFile);
 }
 
 void loadSavePGM() {
-    char *testFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\images\\route0.pgm";
-    char *outputFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\route0.pgm";
-    Image im(testFile);
 }
 
 

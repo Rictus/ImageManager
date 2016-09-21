@@ -15,7 +15,7 @@ void PGM::load() {
     long i = 0, j = 0;
     while (!Image::_imageReader.eof()) {
         Image::_imageReader.read((char *) &b, 1);
-        this->_image[i][j] = b;
+        this->_image[i][j] =(byte) b;
         i = i + 1;
         if (i == Image::_width) {
             i = 0;
