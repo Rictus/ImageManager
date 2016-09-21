@@ -27,7 +27,6 @@ public:
 
     string filename();
 
-
     void close();
 
 private:

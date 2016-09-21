@@ -9,7 +9,7 @@
 
 class PGM : public Image {
 private:
-    unsigned char **_image;
+    byte **_image;
 public:
     PGM(char *_filename);
 
@@ -18,8 +18,6 @@ public:
     void save(char *outputFilename);
 
     byte **initMatrix();
-
-    byte **seeMatrix();
 };
 
 
