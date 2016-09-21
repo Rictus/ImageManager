@@ -10,6 +10,7 @@
 
 using namespace std;
 typedef unsigned char byte;
+
 class Image {
 protected:
     long _width;
@@ -17,12 +18,15 @@ protected:
     long _gris;
     string _filename;
     string _type; //P5, P6, ...
-    fstream _file;
-    ifstream imageReader;
+    ifstream _imageReader;
+
+    ofstream writeHeader(string outputFilename);
+
 public:
     Image(char *_filename);
 
     string filename();
+
 
     void close();
 

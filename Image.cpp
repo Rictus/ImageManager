@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include "Image.h"
-#include <string>
 #include <sstream>
 #include "FileException.h"
 
@@ -21,12 +20,13 @@ Image::Image(char *_filename) : _filename(_filename) {
 }
 
 void Image::readHeader() {
-    imageReader.open(_filename, fstream::in | fstream::out|fstream::binary);
+    _imageReader.open(_filename, fstream::in | fstream::out | fstream::binary);
     string inputLine = "";
 
     int order = 0;
-    while (!imageReader.eof() && order < 3) {
-        getline(imageReader, inputLine);
+    while (!_imageReader.eof() && order < 3) {
+        getline(_imageReader, inputLine);
+        cout << "" << endl;
         if (inputLine.at(0) == '#') {
 
         } else {
@@ -47,8 +47,8 @@ void Image::readHeader() {
                     break;
                 }
                 case 2: {
-//                    getline(imageReader, inputLine);
-//                    this->_gris = stol(inputLine);
+                    //Don't use this one // TODO We need to get this to write it to output file
+                    this->_gris = stol(inputLine);
                     order++;
                 }
                     break;
@@ -64,6 +64,18 @@ string Image::filename() {
 }
 
 void Image::close() {
-    _file.close();
+    _imageReader.close();
+}
+
+ofstream Image::writeHeader(string outputFilename) {
+    ofstream imageWriter;
+    // Check if the file is automatically created
+    // If the file exist, it should delete the content
+    imageWriter.open(outputFilename, std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
+    imageWriter << this->_type;
+    imageWriter << this->_width + " " + this->_height;
+    imageWriter << this->_gris;
+
+    return imageWriter;
 }
 

@@ -15,7 +15,11 @@ public:
 
     void load();
 
-    void save();
+    void save(char *outputFilename);
+
+    byte **initMatrix();
+
+    byte **seeMatrix();
 };
 
 

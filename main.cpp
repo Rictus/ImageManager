@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include <sstream>
 #include "Image.h"
 #include "PGM.h"
 
@@ -17,8 +16,10 @@ int main(int argc, char *argv) {
 //    loadSavePGM();
 //    loadSavePPM();
     char *testFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\images\\Route3.pgm";
+    char *outputFile = (char *) "C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\Route3.pgm";
     PGM pgm(testFile);
     pgm.load();
+    pgm.save(outputFile);
     return 0;
 }
 
