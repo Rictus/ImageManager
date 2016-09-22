@@ -16,8 +16,6 @@ public:
     void load();
 
     void save(char *outputFilename);
-
-    byte **initMatrix();
 };
 
 
