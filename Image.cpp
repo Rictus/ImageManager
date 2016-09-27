@@ -54,6 +54,7 @@ void Image::readHeader() {
             }
         }
     }
+
     if (this->_type == "P5") {
         _nbBytesHeight = this->_nbPixelsHeight;
         _nbBytesWidth = this->_nbPixelsWidth;
@@ -330,4 +331,112 @@ byte **Image::binarise(byte **m, long seuil) {
     }
     return pgmMatrix;
 }
+
+int *Image::histogram() {
+    for (int i = 0; i < 255; i++) {
+        this->_histogram[i] = 0;
+    }
+
+    for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
+        for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
+            byte pixel = this->_image[i][j];
+            int intPixel = (int) pixel;
+            this->_histogram[intPixel]++;
+        }
+    }
+
+    return _histogram;
+}
+
+void Image::histogramPPM() {
+    for (int i = 0; i < 255; i++) {
+        this->_histogramR[i] = 0;
+        this->_histogramG[i] = 0;
+        this->_histogramB[i] = 0;
+    }
+
+    for (long i = 0; i < _nbPixelsHeight; i = i + 3) {
+        for (long j = 0; j < _nbPixelsWidth; j = j + 3) {
+            byte pixel = this->_image[i][j];
+            int intPixel = (int) pixel;
+            this->_histogramR[intPixel]++;
+        }
+    }
+
+    for (long i = 0; i < _nbPixelsHeight; i = i + 3) {
+        for (long j = 1; j < _nbPixelsWidth; j = j + 3) {
+            byte pixel = this->_image[i][j];
+            int intPixel = (int) pixel;
+            this->_histogramG[intPixel]++;
+        }
+    }
+
+    for (long i = 0; i < _nbPixelsHeight; i = i + 3) {
+        for (long j = 2; j < _nbPixelsWidth; j = j + 3) {
+            byte pixel = this->_image[i][j];
+            int intPixel = (int) pixel;
+            this->_histogramB[intPixel]++;
+        }
+    }
+
+/*    for(int i = 0; i<255; i++){
+        cout << this->_histogramR[i]<<"_"<<endl;
+    }
+    cout << "------------------------------" <<endl;
+
+    for(int i = 0; i<255; i++){
+        cout << this->_histogramG[i]<<"_"<<endl;
+    }
+
+    cout << "------------------------------" <<endl;
+
+    for(int i = 0; i<255; i++){
+        cout << this->_histogramB[i]<<"_"<<endl;
+    }
+*/
+}
+
+float Image::mean(int *histogram) {
+    float mean = 0.0;
+    for (int i = 0; i < 255; ++i) {
+        mean += i;
+        mean /= 255;
+    }
+    return mean;
+}
+
+double Image::bhattacharyya(int *hist1, int *hist2) {
+
+    //the less the score is, the more histograms are similar, thus, images are sim
+
+
+    float meanHist1;
+    float meanHist2;
+
+    meanHist1 = mean(hist1);
+    meanHist2 = mean(hist2);
+
+    cout << "meanHist1 = ";
+    cout << meanHist1 << endl;
+
+    cout << "meanHist2 = ";
+    cout << meanHist2 << endl;
+
+    double score = 0.0;
+
+    for (int i = 0; i < 255; ++i) {
+        score += sqrt(hist1[i] * hist2[i]);
+    }
+
+    cout << "score before = " << score << endl;
+
+    cout << sqrt(1 - ((1.0 / sqrt(meanHist1 * meanHist2 * 256 * 256)) * score)) << endl;
+
+    score = sqrt(1 - (1 / sqrt(meanHist1 * meanHist2 * 256 * 256)) * score);
+
+    cout << "score after = ";
+    cout << score << endl;
+    return score;
+}
+
 

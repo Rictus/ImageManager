@@ -26,6 +26,11 @@ private:
     // The only reader for the current image
     std::ifstream _imageReader;
 
+    int _histogram [256];
+    int _histogramR [256];
+    int _histogramG [256];
+    int _histogramB [256];
+
     std::ofstream writeHeader(string outputFilename);
 
 private:
@@ -61,6 +66,15 @@ public:
     byte **sobelMaskComponent();
 
     byte **binarise(byte **m, long seuil);
+
+    int * histogram();
+
+    void histogramPPM();
+
+    float mean(int *histogram);
+
+    double bhattacharyya(int *hist1, int *hist2);
+
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H
