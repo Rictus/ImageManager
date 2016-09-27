@@ -413,45 +413,49 @@ void Image::histogramPPM() {
 }
 
 float Image::mean(int *histogram) {
-    float mean = 0.0;
+    float mean;
+    double sum = 0;
     for (int i = 0; i < 255; ++i) {
-        mean += i;
-        mean /= 255;
+        sum += histogram[i];
     }
+
+    mean = ((float)sum)/255;
+
     return mean;
 }
 
-double Image::bhattacharyya(int *hist1, int *hist2) {
-
-    //the less the score is, the more histograms are similar, thus, images are sim
-
+float Image::bhattacharyya(int *hist1, int *hist2) {
 
     float meanHist1;
     float meanHist2;
 
+    double score = 0;
+    double firstTerm;
+    double secondTerm = 0;
+
     meanHist1 = mean(hist1);
     meanHist2 = mean(hist2);
 
-    cout << "meanHist1 = ";
+    cout << "first histogram's mean = ";
     cout << meanHist1 << endl;
 
-    cout << "meanHist2 = ";
+    cout << "second histogram's mean = ";
     cout << meanHist2 << endl;
 
-    double score = 0.0;
+    firstTerm = sqrt( meanHist1 * meanHist2 * pow(256, 2));
+
+    cout << "first term of algo = ";
+    cout << firstTerm << endl;
 
     for (int i = 0; i < 255; ++i) {
-        score += sqrt(hist1[i] * hist2[i]);
+        secondTerm += sqrt(hist1[i] * hist2[i]);
     }
 
-    cout << "score before = " << score << endl;
+    cout << "second term of algo = ";
+    cout << secondTerm << endl;
 
-    cout << sqrt(1 - ((1.0 / sqrt(meanHist1 * meanHist2 * 256 * 256)) * score)) << endl;
+    score = sqrt( abs( 1 - (1 / firstTerm) * secondTerm) );
 
-    score = sqrt(1 - (1 / sqrt(meanHist1 * meanHist2 * 256 * 256)) * score);
-
-    cout << "score after = ";
-    cout << score << endl;
     return score;
 }
 

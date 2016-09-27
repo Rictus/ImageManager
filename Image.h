@@ -75,7 +75,7 @@ public:
 
     float mean(int *histogram);
 
-    double bhattacharyya(int *hist1, int *hist2);
+    float bhattacharyya(int *hist1, int *hist2);
 
     byte **binarisePGM(byte **m, const long &seuil);
 
