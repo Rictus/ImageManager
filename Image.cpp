@@ -2,18 +2,14 @@
 // Created by Dylan on 20/09/2016.
 //
 
-#include <cmath>
-#include <fstream>
 #include "Image.h"
-#include <sstream>
-#include "FileException.h"
 
 using namespace std;
 
 Image::Image(char *_filename) : _filename(_filename) {
     _nbPixelsWidth = 0;
     _nbPixelsHeight = 0;
-    fstream _file(_filename, ios_base::in | ios_base::out | ios_base::binary);
+    std::fstream _file(_filename, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
     if (!_file) {
         throw FileException(_filename);
     } else {
@@ -23,10 +19,11 @@ Image::Image(char *_filename) : _filename(_filename) {
 }
 
 void Image::readHeader() {
-    _imageReader.open(_filename, ios_base::in | ios_base::out | ios_base::binary);
+    _imageReader.open(_filename, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
     string inputLine = "";
 
     int order = 0;
+    // get each word in the header
     while (!_imageReader.eof() && order < 3) {
         getline(_imageReader, inputLine);
         if (inputLine.at(0) == '#') {
@@ -61,7 +58,7 @@ void Image::readHeader() {
         _nbBytesHeight = this->_nbPixelsHeight;
         _nbBytesWidth = this->_nbPixelsWidth;
     } else if (this->_type == "P6") {
-        // * 3 car un pixel est maintenant composé de 3 composante couleur (rgb)
+        // * 3 because a pixel is composed of 3 bytes (rgb)
         _nbBytesHeight = this->_nbPixelsHeight * 3;
         _nbBytesWidth = this->_nbPixelsWidth * 3;
     } else {
@@ -84,30 +81,33 @@ byte **Image::initMatrix() {
     return this->initMatrix(this->_nbBytesHeight, this->_nbBytesWidth);
 }
 
-string Image::filename() {
-    return _filename;
-}
-
 void Image::close() {
     _imageReader.close();
 }
 
 ofstream Image::writeHeader(string outputFilename) {
-    ofstream imageWriter;
+    std::ofstream imageWriter;
     imageWriter.open(outputFilename,
                      std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
     imageWriter << this->_type << endl;
     imageWriter << this->_nbPixelsWidth << " " << this->_nbPixelsHeight << endl;
     imageWriter << this->_gris << endl;
-
+    // The ofsteram is not closed so save() can still write data
     return imageWriter;
 }
 
 
-void Image::load() {
+void Image::load() { //No longer work properly for PPM
     byte b;
-    this->_image = this->initMatrix();
+    this->_image = this->initMatrix(); //If ppm, the init matri is enouh big
     long i = 0, j = 0;
+    for (i = 0; i < _nbBytesHeight; i = i + 1) {
+        for (j = 0; j < _nbBytesWidth; j = j + 1) {
+            this->_imageReader.read((char *) &b, 1);
+            this->_image[i][j] = (byte) b;
+        }
+    }
+    /*
     while (!this->_imageReader.eof()) {
         this->_imageReader.read((char *) &b, 1);
         this->_image[i][j] = (byte) b;
@@ -119,16 +119,18 @@ void Image::load() {
         if (i == _nbBytesHeight) {
             break;
         }
-    }
+    }//*/
 }
 
 void Image::save(char *outputFilename, byte **matrix, long nbBytesHeight, long nbBytesWidth) {
-    ofstream imageWriter = this->writeHeader(outputFilename);
+    // Récupérer le ofstream initialisé par writeHeader
+    std::ofstream imageWriter = this->writeHeader(outputFilename);
     for (long i = 0; i < nbBytesHeight; i = i + 1) {
         for (long j = 0; j < nbBytesWidth; j = j + 1) {
             imageWriter << matrix[i][j];
         }
     }
+    // We can now close
     imageWriter.close();
 }
 
@@ -140,7 +142,7 @@ void Image::save(char *outputFilename) {
     this->save(outputFilename, this->_image);
 }
 
-byte **Image::sobelMaskHorizontal() {
+byte **Image::sobelMaskHorizontal(byte **givenMatrix) {
     long sumH;
     double meanH;
     byte **resM = initMatrix();
@@ -149,19 +151,19 @@ byte **Image::sobelMaskHorizontal() {
             sumH = 0;
 
             //gauche
-            sumH += -1 * this->_image[i - 1][j - 1];   //haut gauche
-            sumH += -2 * this->_image[i - 1][j];     //centre gauche
-            sumH += -1 * this->_image[i - 1][j + 1];   //bas gauche
+            sumH += -1 * givenMatrix[i - 1][j - 1];   //haut gauche
+            sumH += -2 * givenMatrix[i - 1][j];     //centre gauche
+            sumH += -1 * givenMatrix[i - 1][j + 1];   //bas gauche
 
             //centre
-            sumH += 0 * this->_image[i][j - 1];     //haut centre
-            sumH += 0 * this->_image[i][j];       //centre centre
-            sumH += 0 * this->_image[i][j + 1];     //bas centre
+            sumH += 0 * givenMatrix[i][j - 1];     //haut centre
+            sumH += 0 * givenMatrix[i][j];       //centre centre
+            sumH += 0 * givenMatrix[i][j + 1];     //bas centre
 
             //droite
-            sumH += 1 * this->_image[i + 1][j - 1];   //haut droite
-            sumH += 2 * this->_image[i + 1][j];     //centre droite
-            sumH += 1 * this->_image[i + 1][j + 1];   //bas droite
+            sumH += 1 * givenMatrix[i + 1][j - 1];   //haut droite
+            sumH += 2 * givenMatrix[i + 1][j];     //centre droite
+            sumH += 1 * givenMatrix[i + 1][j + 1];   //bas droite
             meanH = std::floor(abs(sumH) * 255 / 1020);
 
             resM[i][j] = (byte) meanH;
@@ -170,8 +172,7 @@ byte **Image::sobelMaskHorizontal() {
     return resM;
 }
 
-
-byte **Image::sobelMaskVertical() {
+byte **Image::sobelMaskVertical(byte **givenMatrix) {
     long sumH;
     double meanH;
     byte **resM = initMatrix();
@@ -180,19 +181,19 @@ byte **Image::sobelMaskVertical() {
             sumH = 0;
 
             //gauche
-            sumH += -1 * this->_image[i - 1][j - 1];   //haut gauche
-            sumH += 0 * this->_image[i - 1][j];     //centre gauche
-            sumH += 1 * this->_image[i - 1][j + 1];   //bas gauche
+            sumH += -1 * givenMatrix[i - 1][j - 1];   //haut gauche
+            sumH += 0 * givenMatrix[i - 1][j];     //centre gauche
+            sumH += 1 * givenMatrix[i - 1][j + 1];   //bas gauche
 
             //centre
-            sumH += -2 * this->_image[i][j - 1];     //haut centre
-            sumH += 0 * this->_image[i][j];       //centre centre
-            sumH += 2 * this->_image[i][j + 1];     //bas centre
+            sumH += -2 * givenMatrix[i][j - 1];     //haut centre
+            sumH += 0 * givenMatrix[i][j];       //centre centre
+            sumH += 2 * givenMatrix[i][j + 1];     //bas centre
 
             //droite
-            sumH += -1 * this->_image[i + 1][j - 1];   //haut droite
-            sumH += 0 * this->_image[i + 1][j];     //centre droite
-            sumH += 1 * this->_image[i + 1][j + 1];   //bas droite
+            sumH += -1 * givenMatrix[i + 1][j - 1];   //haut droite
+            sumH += 0 * givenMatrix[i + 1][j];     //centre droite
+            sumH += 1 * givenMatrix[i + 1][j + 1];   //bas droite
             meanH = std::floor(abs(sumH) * 255 / 1020);
 
             resM[i][j] = (byte) meanH;
@@ -201,27 +202,85 @@ byte **Image::sobelMaskVertical() {
     return resM;
 }
 
+/**
+ * Separe les composantes R,G et B en 3 matrices distinctes.
+ * Applique les masques de Sobel sur chacune d'entre elles.
+ * Réassemble les 3 matrices pour format une image pgm avec un masque de sobel
+ * @return
+ */
+byte **Image::sobelMaskComponent() {
+    byte **output = initMatrix(_nbBytesHeight, _nbBytesWidth);
+    byte **matrixRed = initMatrix(_nbPixelsWidth, _nbPixelsHeight);
+    byte **matrixGreen = initMatrix(_nbPixelsWidth, _nbPixelsHeight);
+    byte **matrixBlue = initMatrix(_nbPixelsWidth, _nbPixelsHeight);
 
-byte **Image::sobelMask() {
-
-    byte **resM = initMatrix();
-
-    byte **Ix = this->sobelMaskHorizontal();
-    byte **Iy = this->sobelMaskVertical();
+    long idxWidth = 0;
+    long idxHeight = 0;
+    for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
+        for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
+            matrixRed[idxHeight][idxWidth] = this->_image[i][3 * j + 0];
+            matrixGreen[idxHeight][idxWidth] = this->_image[i][3 * j + 1];
+            matrixBlue[idxHeight][idxWidth] = this->_image[i][3 * j + 2];
+            idxWidth = idxWidth + 1;
+        }
+        idxWidth = 0;
+        idxHeight = idxHeight + 1;
+    }
+    delete[]matrixRed;
+    delete[]matrixBlue;
+    delete[]matrixGreen;
+    // P5 because each pixel is one byte.
+    byte **matrixRedSobel = sobelMask("P5", matrixRed);
+    byte **matrixGreenSobel = sobelMask("P5", matrixGreen);
+    byte **matrixBlueSobel = sobelMask("P5", matrixBlue);
 
     for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
         for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
-            resM[i][j] = sqrt(pow(Ix[i][j], 2) + pow(Iy[i][j], 2));
+            output[i][3 * j + 0] = matrixRedSobel[i][j];
+            output[i][3 * j + 1] = matrixGreenSobel[i][j];
+            output[i][3 * j + 2] = matrixBlueSobel[i][j];
         }
     }
 
-    return resM;
+    delete[]matrixRedSobel;
+    delete[]matrixBlueSobel;
+    delete[]matrixGreenSobel;
+
+    return output;
 }
 
-//WIP
+byte **Image::sobelMask(string type, byte **givenMatrix) {
+    if (type == "P6") {
+        return sobelMaskComponent();
+    } else {
+        byte **resM = initMatrix();
+
+        byte **Ix = this->sobelMaskHorizontal(givenMatrix);
+        byte **Iy = this->sobelMaskVertical(givenMatrix);
+
+        for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
+            for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
+                resM[i][j] = sqrt(pow(Ix[i][j], 2) + pow(Iy[i][j], 2));
+            }
+        }
+
+        return resM;
+    }
+}
+
+byte **Image::sobelMask() {
+    return this->sobelMask(this->_type, this->_image);
+}
+
+
+/**
+ * We wanted to convert a PPM file to PGM using different grayscale formula.
+ *
+ * @param choice
+ * @return
+ */
 byte **Image::convertPPMToPGM(int choice) {
     byte **outputMatrix = initMatrix(_nbPixelsHeight, _nbPixelsWidth);
-    long k = 0, l = 0;
     if (this->_type == "P6") {/*
         switch (choice) {
             case 0:
@@ -240,7 +299,6 @@ byte **Image::convertPPMToPGM(int choice) {
                 };
                 break;
         }//*/
-
         for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
             for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
                 byte r = this->_image[i][3 * j + 0];
@@ -249,29 +307,27 @@ byte **Image::convertPPMToPGM(int choice) {
                 outputMatrix[i][j] = (byte) r;
             }
         }
-        /*
-        for (long i = 0; i < _nbBytesHeight; i = i + 1) {
-            for (long j = 0; j < _nbBytesWidth - 2; j = j + 3) {
-                byte r = this->_image[i][j];
-                byte g = this->_image[i][j + 1];
-                byte b = this->_image[i][j + 2];
-                outputMatrix[k][l] = (byte) floor(((r + g + b) / 3));
-                l = l + 1;
-                if (l == _nbPixelsWidth) {
-                    k = k + 1;
-                    l = 0;
-                }
-                if (k == _nbPixelsHeight) {
-                    break;
-                }
-            }
-            if (k == _nbPixelsHeight) {
-                break;
-            }
-        }
-         //*/
     } else {
         cerr << "Not good type of file, expected PPM" << endl;
     }
     return outputMatrix;
 }
+
+byte **Image::binarise(byte **m, long seuil) {
+    int curX, curY;
+    int nrl = 0, ncl = 0;
+    /** Copying matrix to new memory address to not change given matrix**/
+    byte **pgmMatrix = initMatrix(this->_nbPixelsHeight, this->_nbPixelsWidth);
+
+    for (curX = 0; curX < this->_nbPixelsHeight; curX++) {
+        for (curY = 0; curY < this->_nbPixelsWidth; curY++) {
+            if (pgmMatrix[curX][curY] > seuil) {
+                pgmMatrix[curX][curY] = 255;
+            } else {
+                pgmMatrix[curX][curY] = 0;
+            }
+        }
+    }
+    return pgmMatrix;
+}
+

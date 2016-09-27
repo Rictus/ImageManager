@@ -1,19 +1,21 @@
-//
-// Created by Dylan on 20/09/2016.
-//
-
 #ifndef IMAGEMANAGER_IMAGEMANAGER_H
 #define IMAGEMANAGER_IMAGEMANAGER_H
 
 #include <iostream>
 #include <fstream>
+#include <cmath>
+#include <sstream>
+#include "NRC/def.h"
+#include "FileException.h"
 
 using namespace std;
-typedef unsigned char byte;
 
 class Image {
-protected:
+private:
+    // The only data for PPM and PGM files
     byte **_image;
+    // In PPM File : NbBytes = 3* NbPixels
+    // In PGM File : NbBytes = NbPixels
     long _nbPixelsWidth;
     long _nbPixelsHeight;
     long _nbBytesWidth;
@@ -21,9 +23,10 @@ protected:
     long _gris;
     string _filename;
     string _type; //P5, P6, ...
-    ifstream _imageReader;
+    // The only reader for the current image
+    std::ifstream _imageReader;
 
-    ofstream writeHeader(string outputFilename);
+    std::ofstream writeHeader(string outputFilename);
 
 private:
     void readHeader();
@@ -31,29 +34,33 @@ private:
 public:
     Image(char *_filename);
 
-    string filename();
-
     void close();
 
     byte **initMatrix();
 
-    void save(char *outputFilename);
-
     void load();
 
-    byte **sobelMaskHorizontal();
+    void save(char *outputFilename);
 
     void save(char *outputFilename, byte **matrix);
 
-    byte **sobelMaskVertical();
+    void save(char *outputFilename, byte **matrix, long nbBytesHeight, long nbBytesWidth);
 
-    byte **sobelMask();
-
-    byte ** convertPPMToPGM(int choice = 0);
+    byte **convertPPMToPGM(int choice = 0);
 
     byte **initMatrix(long nbBytesHeight, long nbBytesWidth);
 
-    void save(char *outputFilename, byte **matrix, long nbBytesHeight, long nbBytesWidth);
+    byte **sobelMask();
+
+    byte **sobelMaskHorizontal(byte **givenMatrix);
+
+    byte **sobelMaskVertical(byte **givenMatrix);
+
+    byte **sobelMask(string type, byte **givenMatrix);
+
+    byte **sobelMaskComponent();
+
+    byte **binarise(byte **m, long seuil);
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H
