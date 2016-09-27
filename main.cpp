@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include "Image.h"
-#include "NRC/def.h"
 
 using namespace std;
 
@@ -25,18 +24,16 @@ int main(int argc, char *argv[]) {
 }
 
 void loadSavePPM(char *inputFile, char *outputFile) {
-    Image im(inputFile);
-    im.load();
-    byte **sobel = im.sobelMask();
-    im.save(outputFile, sobel);
 }
 
 void loadSavePGM(char *inputFile, char *outputFile) {
     Image im(inputFile);
     im.load();
-//    byte **sobel = im.sobelMask();
-    byte **binarise = im.binarise()
-    im.save(outputFile, sobel);
+    byte **sobel = im.sobelMask();
+    byte **sobelSeuil = im.binarisePGM(sobel,30);
+    double outlineRate = im.calculOutlineRate(sobelSeuil);
+    cout << "OUTLINE RATE : " << outlineRate << endl;
+    im.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_sobelseuil.ppm", sobelSeuil);
 }
 
 void loadPPMSavePGM(char *inputFile, char *outputFile) {
@@ -44,5 +41,4 @@ void loadPPMSavePGM(char *inputFile, char *outputFile) {
     im.load();
     byte **out = im.convertPPMToPGM();
     im.save(outputFile, out);
-
 }

@@ -13,7 +13,9 @@ using namespace std;
 class Image {
 private:
     // The only data for PPM and PGM files
-    byte **_image;
+    byte **_image;          // Source
+    byte **_imageBinarised; // Binarisé
+    byte **_imageOutline;  // Contours
     // In PPM File : NbBytes = 3* NbPixels
     // In PGM File : NbBytes = NbPixels
     long _nbPixelsWidth;
@@ -44,11 +46,11 @@ public:
 
     void save(char *outputFilename, byte **matrix);
 
-    void save(char *outputFilename, byte **matrix, long nbBytesHeight, long nbBytesWidth);
+    void save(char *outputFilename, byte **matrix, long &nbBytesHeight, long &nbBytesWidth);
 
     byte **convertPPMToPGM(int choice = 0);
 
-    byte **initMatrix(long nbBytesHeight, long nbBytesWidth);
+    byte **initMatrix(const long &nbBytesHeight, const long &nbBytesWidth);
 
     byte **sobelMask();
 
@@ -58,9 +60,15 @@ public:
 
     byte **sobelMask(string type, byte **givenMatrix);
 
-    byte **sobelMaskComponent();
+    byte **sobelMaskComponent(byte **givenMatrix);
 
-    byte **binarise(byte **m, long seuil);
+    byte **binarisePGM(byte **m, const long &seuil);
+
+    byte **binarise(long seuil);
+
+    byte **binarisePPM(byte **m, long seuil, char channel);
+
+    double calculOutlineRate(byte **binarisedMatrix);
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H
