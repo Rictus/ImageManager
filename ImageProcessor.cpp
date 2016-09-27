@@ -217,112 +217,113 @@ double ImageProcessor::calculOutlineRate(Image &m) {
     return (double) (totalNumberOfWhitePixel * 100) / (double) totalNumberOfPixel;
 }
 
-int *ImageProcessor::histogram() {
+int *ImageProcessor::histogram(Image &img) {
     for (int i = 0; i < 255; i++) {
-        this->_histogram[i] = 0;
+        img._histogram[i] = 0;
     }
-/**Where dies _nb truc come from ?*/
-    for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
-        for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
-            byte pixel = this->_image[i][j];
+
+    for (long i = 0; i < img._nbPixelsHeight; i = i + 1) {
+        for (long j = 0; j < img._nbPixelsWidth; j = j + 1) {
+            byte pixel = img._image[i][j];
             int intPixel = (int) pixel;
-            this->_histogram[intPixel]++;
+            img._histogram[intPixel]++;
         }
     }
 
     return _histogram;
 }
 
-void ImageProcessor::histogramPPM() {
+void ImageProcessor::histogramPPM(Image &img) {
     for (int i = 0; i < 255; i++) {
-        this->_histogramR[i] = 0;
-        this->_histogramG[i] = 0;
-        this->_histogramB[i] = 0;
+        img._histogramR[i] = 0;
+        img._histogramG[i] = 0;
+        img._histogramB[i] = 0;
     }
-/**Where dies _nb truc come from ?*/
-    for (long i = 0; i < _nbPixelsHeight; i = i + 3) {
-        for (long j = 0; j < _nbPixelsWidth; j = j + 3) {
-            byte pixel = this->_image[i][j];
+
+    for (long i = 0; i < img._nbPixelsHeight; i = i + 3) {
+        for (long j = 0; j < img._nbPixelsWidth; j = j + 3) {
+            byte pixel = img._image[i][j];
             int intPixel = (int) pixel;
-            this->_histogramR[intPixel]++;
+            img._histogramR[intPixel]++;
         }
     }
-/**Where dies _nb truc come from ?*/
 
-    for (long i = 0; i < _nbPixelsHeight; i = i + 3) {
-        for (long j = 1; j < _nbPixelsWidth; j = j + 3) {
-            byte pixel = this->_image[i][j];
+    for (long i = 0; i < img._nbPixelsHeight; i = i + 3) {
+        for (long j = 1; j < img._nbPixelsWidth; j = j + 3) {
+            byte pixel = img._image[i][j];
             int intPixel = (int) pixel;
-            this->_histogramG[intPixel]++;
+            img._histogramG[intPixel]++;
         }
-    }/**Where dies _nb truc come from ?*/
+    }
 
-
-    for (long i = 0; i < _nbPixelsHeight; i = i + 3) {
-        for (long j = 2; j < _nbPixelsWidth; j = j + 3) {
-            byte pixel = this->_image[i][j];
+    for (long i = 0; i < img._nbPixelsHeight; i = i + 3) {
+        for (long j = 2; j < img._nbPixelsWidth; j = j + 3) {
+            byte pixel = img._image[i][j];
             int intPixel = (int) pixel;
-            this->_histogramB[intPixel]++;
+            img._histogramB[intPixel]++;
         }
     }
 
 /*    for(int i = 0; i<255; i++){
-        cout << this->_histogramR[i]<<"_"<<endl;
+        cout << img._histogramR[i]<<"_"<<endl;
     }
     cout << "------------------------------" <<endl;
 
     for(int i = 0; i<255; i++){
-        cout << this->_histogramG[i]<<"_"<<endl;
+        cout << img._histogramG[i]<<"_"<<endl;
     }
 
     cout << "------------------------------" <<endl;
 
     for(int i = 0; i<255; i++){
-        cout << this->_histogramB[i]<<"_"<<endl;
+        cout << img._histogramB[i]<<"_"<<endl;
     }
 */
 }
 
 float ImageProcessor::mean(int *histogram) {
-    float mean = 0.0;
+    float mean;
+    double sum = 0;
     for (int i = 0; i < 255; ++i) {
-        mean += i;
-        mean /= 255;
+        sum += histogram[i];
     }
+
+    mean = ((float)sum)/255;
+
     return mean;
 }
 
-double ImageProcessor::bhattacharyya(int *hist1, int *hist2) {
-
-    //the less the score is, the more histograms are similar, thus, images are sim
-
+float ImageProcessor::bhattacharyya(int *hist1, int *hist2) {
 
     float meanHist1;
     float meanHist2;
 
+    float score = 0;
+    float firstTerm;
+    float secondTerm = 0;
+
     meanHist1 = mean(hist1);
     meanHist2 = mean(hist2);
 
-    cout << "meanHist1 = ";
+    cout << "first histogram's mean = ";
     cout << meanHist1 << endl;
 
-    cout << "meanHist2 = ";
+    cout << "second histogram's mean = ";
     cout << meanHist2 << endl;
 
-    double score = 0.0;
+    firstTerm = sqrt( meanHist1 * meanHist2 * pow(256, 2));
+
+    cout << "first term of algo = ";
+    cout << firstTerm << endl;
 
     for (int i = 0; i < 255; ++i) {
-        score += sqrt(hist1[i] * hist2[i]);
+        secondTerm += sqrt(hist1[i] * hist2[i]);
     }
 
-    cout << "score before = " << score << endl;
+    cout << "second term of algo = ";
+    cout << secondTerm << endl;
 
-    cout << sqrt(1 - ((1.0 / sqrt(meanHist1 * meanHist2 * 256 * 256)) * score)) << endl;
+    score = sqrt( abs( 1 - (1 / firstTerm) * secondTerm) );
 
-    score = sqrt(1 - (1 / sqrt(meanHist1 * meanHist2 * 256 * 256)) * score);
-
-    cout << "score after = ";
-    cout << score << endl;
     return score;
 }
-

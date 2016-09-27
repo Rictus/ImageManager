@@ -76,7 +76,6 @@ public:
 
     void save(char *outputFilename);
 
-
     void save(char *outputFilename, byte **matrix, long &nbBytesHeight, long &nbBytesWidth);
 
     void explain();

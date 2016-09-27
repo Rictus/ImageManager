@@ -26,13 +26,13 @@ public:
 
     Image sobelMaskComponent(Image &img);
 
-    int *histogram();
+    int *histogram(Image &img);
 
-    void histogramPPM();
+    void histogramPPM(Image &img);
 
     float mean(int *histogram);
 
-    double bhattacharyya(int *hist1, int *hist2);
+    float bhattacharyya(int *hist1, int *hist2);
 
     Image binarisePGM(Image &m, const long &seuil);
 
