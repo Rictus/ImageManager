@@ -11,9 +11,19 @@
 #include <sstream>
 #include "Image.h"
 
+
+#ifndef GRAYSCALEALGORITHM_ENUMDEFINE
+#define GRAYSCALEALGORITHM_ENUMDEFINE
+enum GrayscaleConvertionAlgorithm {
+    LIGHTNESS = 0, AVERAGE = 1, LUMINOSITY = 2
+};
+#else
+#pragma message("  ATTENTION : GRAYSCALEALGORITHM ENUMERATION already defined")
+#endif
+
 class ImageProcessor : protected Image {
 public:
-    Image convertPPMToPGM(int choice = 0);
+    Image convertPPMToPGM(GrayscaleConvertionAlgorithm algorithm, Image &img);
 
 
     Image sobelMaskHorizontal(Image &img);
@@ -38,7 +48,7 @@ public:
 
     Image binarise(Image &img, long seuil);
 
-    Image binarisePPM(Image &m, long seuil, char channel);
+    Image binarisePPM(Image &m, long seuil);
 
     double calculOutlineRate(Image &binarisedMatrix);
 };

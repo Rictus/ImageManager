@@ -71,7 +71,7 @@ Image ImageProcessor::sobelMaskVertical(Image &img) {
  * @return
  */
 Image ImageProcessor::sobelMaskComponent(Image &img) {
-    Image output = Image(ImageType::P6, img._nbBytesHeight, img._nbBytesWidth);
+    Image output = Image(ImageType::P6, img._nbPixelsHeight, img._nbPixelsWidth);
     // P5 because each pixel is one byte.
     Image imageRed = Image(ImageType::P5, img._nbBytesHeight, img._nbBytesWidth);
     Image imageGreen = Image(ImageType::P5, img._nbBytesHeight, img._nbBytesWidth);
@@ -89,6 +89,10 @@ Image ImageProcessor::sobelMaskComponent(Image &img) {
         idxWidth = 0;
         idxHeight = idxHeight + 1;
     }
+
+    imageRed = this->sobelMask(ImageType::P5, imageRed);
+    imageGreen = this->sobelMask(ImageType::P5, imageGreen);
+    imageBlue = this->sobelMask(ImageType::P5, imageBlue);
 
     for (long i = 0; i < img._nbPixelsHeight; i = i + 1) {
         for (long j = 0; j < img._nbPixelsWidth; j = j + 1) {
@@ -125,36 +129,28 @@ Image ImageProcessor::sobelMask(Image &img) {
 /**
  * We wanted to convert a PPM file to PGM using different grayscale formula.
  *
- * @param choice
+ * @param algorithm
  * @return
  */
-Image ImageProcessor::convertPPMToPGM(int choice) {
-    /**You should precise where this _nbPixelsHeight comes from*/
-    Image output = Image(ImageType::P6, _nbPixelsHeight, _nbPixelsWidth);
-    if (this->_type == ImageType::P6) {/*
-        switch (choice) {
-            case 0:
-                auto toGreyScale = [](byte r, byte g, byte b) {
-                    return (byte) ((max(r, g, b) + min(r, g, b)) / 2);
-                };
-                break;
-            case 1:
-                auto toGreyScale = [](byte r, byte g, byte b) {
-                    return (byte) ((r + g + b) / 3);
-                };
-                break;
-            case 2:
-                toGreyScale = [](byte r, byte g, byte b) {
-                    return (byte) ((0.21 * r) + (0.72 * g) + (0.07 * b));
-                };
-                break;
-        }//*/
-        for (long i = 0; i < _nbPixelsHeight; i = i + 1) {
-            for (long j = 0; j < _nbPixelsWidth; j = j + 1) {
-                byte r = this->_image[i][3 * j + 0];
-                byte g = this->_image[i][3 * j + 1];
-                byte b = this->_image[i][3 * j + 2];
-                output._image[i][j] = (byte) r;
+Image ImageProcessor::convertPPMToPGM(GrayscaleConvertionAlgorithm algorithm, Image &img) {
+    Image output = Image(ImageType::P5, img._nbPixelsHeight, img._nbPixelsWidth);
+    if (img._type == ImageType::P6) {
+        byte outputByte;
+        for (long i = 0; i < img._nbPixelsHeight; i = i + 1) {
+            for (long j = 0; j < img._nbPixelsWidth; j = j + 1) {
+                int r = img._image[i][3 * j + 0];
+                int g = img._image[i][3 * j + 1];
+                int b = img._image[i][3 * j + 2];
+                if (algorithm == GrayscaleConvertionAlgorithm::LIGHTNESS) {
+                    outputByte = (byte) ((max(max(r, g), b) + min(min(r, g), b)) / 2);
+                } else if (algorithm == GrayscaleConvertionAlgorithm::AVERAGE) {
+                    outputByte = (byte) ((r + g + b) / 3);
+                } else if (algorithm == GrayscaleConvertionAlgorithm::LUMINOSITY) {
+                    outputByte = (byte) (0.21 * r + 0.72 * g + 0.07 * b);
+                } else {
+                    outputByte = 0;
+                }
+                output._image[i][j] = outputByte;
             }
         }
     } else {
@@ -178,25 +174,16 @@ Image ImageProcessor::binarisePGM(Image &img, const long &seuil) {
     return output;
 }
 
-Image ImageProcessor::binarisePPM(Image &img, long seuil, char channel) {
-    int curX, curY;
-    Image output(ImageType::P6, img._nbPixelsHeight, img._nbPixelsWidth);
-    for (curX = 0; curX < img._nbPixelsHeight; curX++) {
-        for (curY = 0; curY < img._nbPixelsWidth; curY++) {
-            if ((long) (img._image[curX][curY]) > seuil) {
-                output._image[curX][curY] = 255;//TODO
-            } else {
-                output._image[curX][curY] = 0;
-            }
-        }
-    }
-    return output;
+Image ImageProcessor::binarisePPM(Image &img, long seuil) {
+    Image pgmImage = this->convertPPMToPGM(GrayscaleConvertionAlgorithm::LIGHTNESS, img);
+    pgmImage.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_grey.ppm");
+    return this->binarisePGM(pgmImage, seuil);
 }
 
 Image ImageProcessor::binarise(Image &img, long seuil) {
-    if (this->_type == ImageType::P6) {
-        return this->binarisePPM(img, seuil, 'a');
-    } else if (this->_type == ImageType::P5) {
+    if (img._type == ImageType::P6) {
+        return this->binarisePPM(img, seuil);
+    } else if (img._type == ImageType::P5) {
         return this->binarisePGM(img, seuil);
     }
 }

@@ -81,6 +81,8 @@ public:
     void explain();
 
     void initHistoArrays();
+
+    void saveImageInformations(char* outputFilename);
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H

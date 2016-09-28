@@ -3,6 +3,7 @@
 //
 
 #include "Image.h"
+#include "ImageProcessor.h"
 
 using namespace std;
 
@@ -95,21 +96,6 @@ void Image::readHeader() {
     _imageReader.close();
 }
 
-byte **Image::initMatrix(long &nbBytesHeight, long &nbBytesWidth) {
-    byte **matrix = new byte *[nbBytesHeight];
-    for (long i = 0; i < nbBytesHeight; i = i + 1) {
-        matrix[i] = new byte[nbBytesWidth];
-        for (long j = 0; j < nbBytesWidth; j = j + 1) {
-            matrix[i][j] = (unsigned char) 0;
-        }
-    }
-    return matrix;
-}
-
-void Image::close() {
-    _imageReader.close();
-}
-
 ofstream Image::writeHeader(string outputFilename) {
     std::ofstream imageWriter;
     imageWriter.open(outputFilename,
@@ -128,6 +114,33 @@ ofstream Image::writeHeader(string outputFilename) {
     imageWriter << this->_gris << endl;
     // The ofsteram is not closed so save() can still write data
     return imageWriter;
+}
+
+byte **Image::initMatrix(long &nbBytesHeight, long &nbBytesWidth) {
+    byte **matrix = new byte *[nbBytesHeight];
+    for (long i = 0; i < nbBytesHeight; i = i + 1) {
+        matrix[i] = new byte[nbBytesWidth];
+        for (long j = 0; j < nbBytesWidth; j = j + 1) {
+            matrix[i][j] = (unsigned char) 0;
+        }
+    }
+    return matrix;
+}
+
+void Image::initImageMatrix() {
+    this->_image = initMatrix(_nbBytesHeight, _nbBytesWidth);
+}
+
+void Image::initImageType(string basic_string) {
+    if (basic_string == "P5") {
+        this->_type = ImageType::P5;
+    } else if (basic_string == "P6") {
+        this->_type = ImageType::P6;
+    }
+}
+
+void Image::close() {
+    _imageReader.close();
 }
 
 void Image::load() { //No longer work properly for PPM
@@ -155,20 +168,7 @@ void Image::save(char *outputFilename, byte **matrix, long &nbBytesHeight, long 
 }
 
 void Image::save(char *outputFilename) {
-    this->save(outputFilename, this->_image, _nbBytesHeight, _nbBytesWidth);
-}
-
-
-void Image::initImageMatrix() {
-    this->_image = initMatrix(_nbBytesHeight, _nbBytesWidth);
-}
-
-void Image::initImageType(string basic_string) {
-    if (basic_string == "P5") {
-        this->_type = ImageType::P5;
-    } else if (basic_string == "P6") {
-        this->_type = ImageType::P6;
-    }
+    this->save(outputFilename, this->_image, this->_nbBytesHeight, this->_nbBytesWidth);
 }
 
 void Image::explain() {
@@ -192,4 +192,41 @@ void Image::initHistoArrays() {
         _histogramG[i] = 0;
         _histogramR[i] = 0;
     }
+}
+
+void Image::saveImageInformations(char *outputFilename) {
+    double outlineRate;
+    int *hist;
+    int seuil = 100;
+    std::ofstream imageWriter;
+    imageWriter.open(outputFilename,
+                     std::ios_base::in | std::ios_base::out | std::ios_base::trunc);
+
+    string strType;
+    if (_type == ImageType::P6) {
+        strType = "P6";
+    } else if (_type == ImageType::P5) {
+        strType = "P5";
+    } else {
+        strType = "";
+    }
+    ImageProcessor ip;
+    hist = ip.histogram(*this);
+    Image sobel = ip.sobelMask(*this);
+    Image sobelSeuil = ip.binarisePGM(sobel, seuil);
+    outlineRate = ip.calculOutlineRate(sobelSeuil);
+
+
+    imageWriter << strType << endl;
+    imageWriter << this->_nbPixelsWidth << endl;
+    imageWriter << this->_nbPixelsHeight << endl;
+    imageWriter << this->_gris << endl;
+    for (int i = 0; i < 256; i++) {
+        imageWriter << hist[i] << " ";
+    }
+    imageWriter << endl;
+    imageWriter << outlineRate << endl;
+
+
+    imageWriter.close();
 }

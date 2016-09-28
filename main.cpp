@@ -8,32 +8,32 @@
 
 using namespace std;
 
-void loadSavePGM(char *inputFile, char *outputFile);
+void testSaveInformations(char *inputFile, char *outputFile);
 
+void testPPM(char *inputFile);
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         cerr << "Usage : first argument, input file. second argument, output file.";
     } else {
-        loadSavePGM(argv[1], argv[2]);
-
+//        testSaveInformations(argv[1], argv[2]);
+        testPPM(argv[1]);
     }
     return 0;
 }
 
-void loadSavePGM(char *inputFile, char *outputFile) {
+void testSaveInformations(char *inputFile, char *outputFile) {
     ImageProcessor ip;
     Image im(inputFile);
     im.load();
-    Image im2(outputFile);
-    im2.load();
-    //Image sobel = ip.sobelMask(im);
-    //Image sobelSeuil = ip.binarisePGM(sobel, 30);
-    //double outlineRate = ip.calculOutlineRate(sobelSeuil);
-    int* hist1 = ip.histogram(im);
-    int* hist2 = ip.histogram(im2);
-    float a = ip.bhattacharyya(hist1, hist2);
-    cout << "bhattacharyya say : " << a << endl;
-    //cout << "outline rate : " << outlineRate << "%" << endl;
-    //sobelSeuil.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_sobelseuil.pgm");
+    im.saveImageInformations("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_sobelseuil.txt");
+}
+
+void testPPM(char *inputFile) {
+    ImageProcessor ip;
+    Image im(inputFile);
+    im.load();
+    Image test = ip.sobelMask(im);
+    test = ip.binarise(test, 50);
+    test.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res.ppm");
 }
