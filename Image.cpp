@@ -21,6 +21,7 @@ Image::Image(char *_filename) : _filename(_filename) {
     this->readHeader();
     initImageMatrix();
     initHistoArrays();
+    load();
 }
 
 Image::Image(ImageType type, long height, long width, byte **matrix) {
@@ -48,6 +49,7 @@ Image::Image(ImageType type, long height, long width) {
 
 void Image::readHeader() {
     _imageReader.open(_filename, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+    _imageReader.seekg(_NULL, std::ios_base::beg);
     string inputLine = "";
 
     int order = 0;
@@ -55,6 +57,7 @@ void Image::readHeader() {
     while (!_imageReader.eof() && order < 3) {
         getline(_imageReader, inputLine);
         if (inputLine.at(0) == '#') {
+            //Ignoring commentary
         } else {
             switch (order) {
                 case 0: {
@@ -93,14 +96,12 @@ void Image::readHeader() {
     } else {
         cerr << "Unknown file type : " << this->_type;
     }
-    _imageReader.close();
 }
 
 ofstream Image::writeHeader(string outputFilename) {
     std::ofstream imageWriter;
     imageWriter.open(outputFilename,
                      std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
-
     string strType;
     if (_type == ImageType::P6) {
         strType = "P6";
@@ -121,7 +122,7 @@ byte **Image::initMatrix(long &nbBytesHeight, long &nbBytesWidth) {
     for (long i = 0; i < nbBytesHeight; i = i + 1) {
         matrix[i] = new byte[nbBytesWidth];
         for (long j = 0; j < nbBytesWidth; j = j + 1) {
-            matrix[i][j] = (unsigned char) 0;
+            matrix[i][j] = (unsigned char) Color::BLACK;
         }
     }
     return matrix;
@@ -145,7 +146,7 @@ void Image::close() {
 
 void Image::load() { //No longer work properly for PPM
     byte b;
-    _imageReader.open(_filename, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+//    _imageReader.open(_filename, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
     long i, j;
     for (i = 0; i < _nbBytesHeight; i = i + 1) {
         for (j = 0; j < _nbBytesWidth; j = j + 1) {
@@ -226,7 +227,6 @@ void Image::saveImageInformations(char *outputFilename) {
     }
     imageWriter << endl;
     imageWriter << outlineRate << endl;
-
 
     imageWriter.close();
 }

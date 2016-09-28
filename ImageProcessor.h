@@ -51,6 +51,10 @@ public:
     Image binarisePPM(Image &m, long seuil);
 
     double calculOutlineRate(Image &binarisedMatrix);
+
+    double *getComponentsRatesFromHSV(Image &img);
+
+    double *getComponentsRatesFromRGB(Image &img);
 };
 
 

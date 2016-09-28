@@ -165,9 +165,9 @@ Image ImageProcessor::binarisePGM(Image &img, const long &seuil) {
     for (curX = 0; curX < img._nbPixelsHeight; curX++) {
         for (curY = 0; curY < img._nbPixelsWidth; curY++) {
             if ((long) (img._image[curX][curY]) > seuil) {
-                output._image[curX][curY] = 255;
+                output._image[curX][curY] = Color::WHITE;
             } else {
-                output._image[curX][curY] = 0;
+                output._image[curX][curY] = Color::BLACK;
             }
         }
     }
@@ -176,7 +176,6 @@ Image ImageProcessor::binarisePGM(Image &img, const long &seuil) {
 
 Image ImageProcessor::binarisePPM(Image &img, long seuil) {
     Image pgmImage = this->convertPPMToPGM(GrayscaleConvertionAlgorithm::LIGHTNESS, img);
-    pgmImage.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_grey.ppm");
     return this->binarisePGM(pgmImage, seuil);
 }
 
@@ -193,7 +192,7 @@ double ImageProcessor::calculOutlineRate(Image &m) {
     long totalNumberOfWhitePixel = 0;
     for (long i = 0; i < m._nbPixelsHeight; i = i + 1) {
         for (long j = 0; j < m._nbPixelsWidth; j = j + 1) {
-            if (m._image[i][j] == 255) {
+            if (m._image[i][j] == Color::BLACK) {
                 totalNumberOfWhitePixel = totalNumberOfWhitePixel + 1;
             }
         }
@@ -227,6 +226,7 @@ void ImageProcessor::histogramPPM(Image &img) {
         img._histogramB[i] = 0;
     }
 
+    /***THIS COULD BE OPTIMIZE IN ONE LOOP**/
     for (long i = 0; i < img._nbPixelsHeight; i = i + 3) {
         for (long j = 0; j < img._nbPixelsWidth; j = j + 3) {
             byte pixel = img._image[i][j];
@@ -250,22 +250,6 @@ void ImageProcessor::histogramPPM(Image &img) {
             img._histogramB[intPixel]++;
         }
     }
-
-/*    for(int i = 0; i<255; i++){
-        cout << img._histogramR[i]<<"_"<<endl;
-    }
-    cout << "------------------------------" <<endl;
-
-    for(int i = 0; i<255; i++){
-        cout << img._histogramG[i]<<"_"<<endl;
-    }
-
-    cout << "------------------------------" <<endl;
-
-    for(int i = 0; i<255; i++){
-        cout << img._histogramB[i]<<"_"<<endl;
-    }
-*/
 }
 
 float ImageProcessor::mean(int *histogram) {
@@ -276,7 +260,6 @@ float ImageProcessor::mean(int *histogram) {
         sum = sum + histogram[i];
     }
 
-    mean = (float) (sum / 256.0);
     mean = (float) (sum / 256.0);
 
     return mean;
@@ -293,26 +276,124 @@ float ImageProcessor::bhattacharyya(int *hist1, int *hist2) {
 
     meanHist1 = mean(hist1);
     meanHist2 = mean(hist2);
-
-    cout << "first histogram's mean = ";
-    cout << meanHist1 << endl;
-
-    cout << "second histogram's mean = ";
-    cout << meanHist2 << endl;
-
     firstTerm = sqrt(meanHist1 * meanHist2 * pow(256, 2));
-
-    cout << "first term of algo = ";
-    cout << firstTerm << endl;
 
     for (int i = 0; i < 256; i = i + 1) {
         secondTerm = secondTerm + sqrt((double) hist1[i] * (double) hist2[i]);
     }
 
-    cout << "second term of algo = ";
-    cout << secondTerm << endl;
-
     score = (float) sqrt(abs(1 - (1 / firstTerm) * secondTerm));
 
     return score;
+}
+
+double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
+    double *componentRates = new double[3];
+    int idxRedComponent = 0;
+    int idxGreenComponent = 1;
+    int idxBlueComponent = 2;
+    int r, g, b;
+    int maxValueComponent = 255;
+    float denominator;
+    float Hue = 0;
+    float saturation = 0;//TODO We could use saturation/lightness to escape from white/black
+    float lightness = 0;
+    float rPrime, gPrime, bPrime;
+    float Cmax, Cmin;
+    float delta;
+
+    for (int i = 0; i < img._nbBytesHeight; i++) {
+        for (int j = 0; j < img._nbBytesWidth; j = j + 3) {
+            r = img._image[i][j + 0];
+            g = img._image[i][j + 1];
+            b = img._image[i][j + 2];
+            /**Hue calculation. See : http://www.rapidtables.com/convert/color/rgb-to-hsv.htm**/
+            rPrime = (float) (r / 255.0);
+            gPrime = (float) (g / 255.0);
+            bPrime = (float) (b / 255.0);
+            Cmax = max(max(rPrime, gPrime), bPrime);
+            Cmin = min(min(rPrime, gPrime), bPrime);
+            delta = Cmax - Cmin;
+            if (delta == 0) {
+                Hue = 0;
+                saturation = 0;
+                lightness = Cmax > 0 ? delta / Cmax : 0;
+            } else {
+                if (Cmax == rPrime) {
+                    Hue = gPrime - bPrime;
+                    Hue = Hue / delta;
+                    Hue = fmod(Hue, 6.0);
+                    Hue = (float) (Hue * 60.0);
+                } else if (Cmax == gPrime) {
+                    Hue = bPrime - rPrime;
+                    Hue = Hue / delta;
+                    Hue = (float) (Hue + 2.0);
+                    Hue = (float) (Hue * 60.0);
+                } else if (Cmax == bPrime) {
+                    Hue = rPrime - gPrime;
+                    Hue = Hue / delta;
+                    Hue = (float) (Hue + 4.0);
+                    Hue = (float) (Hue * 60.0);
+                }
+            }
+            /**Red Component**/
+            if (Hue > 340 || Hue < 7) {
+                componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
+            }
+            /**Green Component**/
+            if (Hue > 86 && Hue < 152) {
+                componentRates[idxGreenComponent] = componentRates[idxGreenComponent] + g;
+            }
+            /**Blue Component**/
+            if (Hue > 163 && Hue < 256) {
+                componentRates[idxBlueComponent] = componentRates[idxBlueComponent] + b;
+            }
+        }
+    }
+
+    denominator = (img._nbPixelsHeight * img._nbPixelsWidth * (float) maxValueComponent);
+    componentRates[idxRedComponent] = (componentRates[idxRedComponent] * 100.0) / denominator;
+    componentRates[idxGreenComponent] = (componentRates[idxGreenComponent] * 100.0) / denominator;
+    componentRates[idxBlueComponent] = (componentRates[idxBlueComponent] * 100.0) / denominator;
+
+    return componentRates;
+}
+
+
+double *ImageProcessor::getComponentsRatesFromRGB(Image &img) {
+    double *componentRates = new double[3];
+    int idxRedComponent = 0;
+    int idxGreenComponent = 1;
+    int idxBlueComponent = 2;
+    int r, g, b;
+    int maxValueComponent = 255;
+    int seuil = 80;
+    float denominator;
+
+    for (int i = 0; i < img._nbBytesHeight; i++) {
+        for (int j = 0; j < img._nbBytesWidth; j = j + 3) {
+            r = img._image[i][j + 0];
+            g = img._image[i][j + 1];
+            b = img._image[i][j + 2];
+            /**Red Component**/
+            if (g < seuil && b < seuil) {
+                componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
+            }
+            /**Green Component**/
+            if (r < seuil && b < seuil) {
+                componentRates[idxGreenComponent] = componentRates[idxGreenComponent] + g;
+            }
+            /**Blue Component**/
+            if (g < seuil && r < seuil) {
+                componentRates[idxBlueComponent] = componentRates[idxBlueComponent] + b;
+            }
+        }
+    }
+
+    denominator = (img._nbPixelsHeight * img._nbPixelsWidth * (float) maxValueComponent);
+    componentRates[idxRedComponent] = (componentRates[idxRedComponent] * 100.0) / denominator;
+    componentRates[idxGreenComponent] = (componentRates[idxGreenComponent] * 100.0) / denominator;
+    componentRates[idxBlueComponent] = (componentRates[idxBlueComponent] * 100.0) / denominator;
+
+    return componentRates;
 }

@@ -24,12 +24,19 @@ typedef unsigned char byte;
 #pragma message("  ATTENTION : BYTE_AS_UNSIGNED_CHAR already defined")
 #endif
 
+#ifndef COLOR_DEFINE
+#define COLOR_DEFINE
+enum Color {
+    WHITE = 255, BLACK = 0
+};
+#else
+//#pragma message("typedef Color")
+#endif
+
 using namespace std;
 
 class Image {
 public:
-
-    // The only data for PPM and PGM files
     byte **_image;          // Source
     // In PPM File : NbBytes = 3* NbPixels
     // In PGM File : NbBytes = NbPixels
@@ -56,6 +63,8 @@ private:
 
     void initImageMatrix();
 
+    void load();
+
     void initImageType(string basic_string);
 
 public:
@@ -72,7 +81,6 @@ public:
 
     byte **initMatrix(long &nbBytesHeight, long &nbBytesWidth);
 
-    void load();
 
     void save(char *outputFilename);
 
@@ -82,7 +90,8 @@ public:
 
     void initHistoArrays();
 
-    void saveImageInformations(char* outputFilename);
+    void saveImageInformations(char *outputFilename);
+
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H
