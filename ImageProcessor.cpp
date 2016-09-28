@@ -26,7 +26,7 @@ Image ImageProcessor::sobelMaskHorizontal(Image &img) {
             sumH += 1 * img._image[i + 1][j - 1];   //haut droite
             sumH += 2 * img._image[i + 1][j];     //centre droite
             sumH += 1 * img._image[i + 1][j + 1];   //bas droite
-            meanH = std::floor(abs(sumH) * 255 / 1020);
+            meanH = std::floor(abs(sumH) * 256 / 1020);
 
             output._image[i][j] = (byte) meanH;
         }
@@ -56,7 +56,7 @@ Image ImageProcessor::sobelMaskVertical(Image &img) {
             sumH += -1 * img._image[i + 1][j - 1];   //haut droite
             sumH += 0 * img._image[i + 1][j];     //centre droite
             sumH += 1 * img._image[i + 1][j + 1];   //bas droite
-            meanH = std::floor(abs(sumH) * 255 / 1020);
+            meanH = std::floor(abs(sumH) * 256 / 1020);
 
             output._image[i][j] = (byte) meanH;
         }
@@ -218,7 +218,7 @@ double ImageProcessor::calculOutlineRate(Image &m) {
 }
 
 int *ImageProcessor::histogram(Image &img) {
-    for (int i = 0; i < 255; i++) {
+    for (int i = 0; i < 256; i++) {
         img._histogram[i] = 0;
     }
 
@@ -226,15 +226,15 @@ int *ImageProcessor::histogram(Image &img) {
         for (long j = 0; j < img._nbPixelsWidth; j = j + 1) {
             byte pixel = img._image[i][j];
             int intPixel = (int) pixel;
-            img._histogram[intPixel]++;
+            img._histogram[intPixel] = img._histogram[intPixel] + 1;
+
         }
     }
-
-    return _histogram;
+    return img._histogram;
 }
 
 void ImageProcessor::histogramPPM(Image &img) {
-    for (int i = 0; i < 255; i++) {
+    for (int i = 0; i < 256; i++) {
         img._histogramR[i] = 0;
         img._histogramG[i] = 0;
         img._histogramB[i] = 0;
@@ -284,11 +284,13 @@ void ImageProcessor::histogramPPM(Image &img) {
 float ImageProcessor::mean(int *histogram) {
     float mean;
     double sum = 0;
-    for (int i = 0; i < 255; ++i) {
-        sum += histogram[i];
+    for (int i = 0; i < 256; ++i) {
+        cout << histogram[i] << ' ' << endl;
+        sum = sum + histogram[i];
     }
 
-    mean = ((float)sum)/255;
+    mean = (float) (sum / 256.0);
+    mean = (float) (sum / 256.0);
 
     return mean;
 }
@@ -300,7 +302,7 @@ float ImageProcessor::bhattacharyya(int *hist1, int *hist2) {
 
     float score = 0;
     float firstTerm;
-    float secondTerm = 0;
+    double secondTerm = 0;
 
     meanHist1 = mean(hist1);
     meanHist2 = mean(hist2);
@@ -311,19 +313,19 @@ float ImageProcessor::bhattacharyya(int *hist1, int *hist2) {
     cout << "second histogram's mean = ";
     cout << meanHist2 << endl;
 
-    firstTerm = sqrt( meanHist1 * meanHist2 * pow(256, 2));
+    firstTerm = sqrt(meanHist1 * meanHist2 * pow(256, 2));
 
     cout << "first term of algo = ";
     cout << firstTerm << endl;
 
-    for (int i = 0; i < 255; ++i) {
-        secondTerm += sqrt(hist1[i] * hist2[i]);
+    for (int i = 0; i < 256; i = i + 1) {
+        secondTerm = secondTerm + sqrt((double) hist1[i] * (double) hist2[i]);
     }
 
     cout << "second term of algo = ";
     cout << secondTerm << endl;
 
-    score = sqrt( abs( 1 - (1 / firstTerm) * secondTerm) );
+    score = (float) sqrt(abs(1 - (1 / firstTerm) * secondTerm));
 
     return score;
 }

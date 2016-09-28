@@ -79,6 +79,8 @@ public:
     void save(char *outputFilename, byte **matrix, long &nbBytesHeight, long &nbBytesWidth);
 
     void explain();
+
+    void initHistoArrays();
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H

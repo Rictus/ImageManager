@@ -19,6 +19,7 @@ Image::Image(char *_filename) : _filename(_filename) {
     }
     this->readHeader();
     initImageMatrix();
+    initHistoArrays();
 }
 
 Image::Image(ImageType type, long height, long width, byte **matrix) {
@@ -41,6 +42,7 @@ Image::Image(ImageType type, long height, long width) {
         cerr << "Unknown file type : " << this->_type;
     }
     initImageMatrix();
+    initHistoArrays();
 }
 
 void Image::readHeader() {
@@ -180,5 +182,14 @@ void Image::explain() {
         cout << "P5" << endl;
     } else {
         cout << "unknown" << endl;
+    }
+}
+
+void Image::initHistoArrays() {
+    for (int i = 0; i < 256; i++) {
+        _histogram[i] = 0;
+        _histogramB[i] = 0;
+        _histogramG[i] = 0;
+        _histogramR[i] = 0;
     }
 }
