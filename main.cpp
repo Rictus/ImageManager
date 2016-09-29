@@ -20,8 +20,8 @@ int main(int argc, char *argv[]) {
         cerr << "Usage : first argument, input file. second argument, output file.";
     } else {
 //        testSaveInformations(argv[1], argv[2]);
-        testPPM(argv[1]);
-//        testSetOfPPMs();
+//        testPPM(argv[1]);
+        testSetOfPPMs();
     }
     return 0;
 }
@@ -93,7 +93,5 @@ void testPPM(char *inputFile) {
     sobel.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_sobel.ppm");
     sobelSeuil.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\res_sobelseuil.ppm");
     double *rateComponents = ip.getComponentsRatesFromHSV(im);
-    cout << rateComponents[0] << " " << rateComponents[1] << " " << rateComponents[2] << endl;
     rateComponents = ip.getComponentsRatesFromRGB(im);
-    cout << rateComponents[0] << " " << rateComponents[1] << " " << rateComponents[2] << endl;
 }

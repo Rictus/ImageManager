@@ -217,6 +217,7 @@ void Image::saveImageInformations(char *outputFilename) {
     Image sobelSeuil = ip.binarisePGM(sobel, seuil);
     outlineRate = ip.calculOutlineRate(sobelSeuil);
 
+    double * componentsRates = ip.getComponentsRatesFromRGB(*this);
 
     imageWriter << strType << endl;
     imageWriter << this->_nbPixelsWidth << endl;
@@ -227,6 +228,9 @@ void Image::saveImageInformations(char *outputFilename) {
     }
     imageWriter << endl;
     imageWriter << outlineRate << endl;
+    imageWriter << componentsRates[0] << endl;
+    imageWriter << componentsRates[1] << endl;
+    imageWriter << componentsRates[2] << endl;
 
     imageWriter.close();
 }
