@@ -302,6 +302,10 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
     float Cmax, Cmin;
     float delta;
 
+    componentRates[idxRedComponent] = 0;
+    componentRates[idxBlueComponent] = 0;
+    componentRates[idxGreenComponent] = 0;
+
     for (int i = 0; i < img._nbBytesHeight; i++) {
         for (int j = 0; j < img._nbBytesWidth; j = j + 3) {
             r = img._image[i][j + 0];
@@ -317,27 +321,30 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
             if (delta == 0) {
                 Hue = 0;
                 saturation = 0;
-                lightness = Cmax > 0 ? delta / Cmax : 0;
+                lightness = Cmax;
             } else {
                 if (Cmax == rPrime) {
-                    Hue = gPrime - bPrime;
+                    Hue = abs(gPrime - bPrime);
                     Hue = Hue / delta;
                     Hue = fmod(Hue, 6.0);
                     Hue = (float) (Hue * 60.0);
                 } else if (Cmax == gPrime) {
-                    Hue = bPrime - rPrime;
+                    Hue = abs(bPrime - rPrime);
                     Hue = Hue / delta;
                     Hue = (float) (Hue + 2.0);
                     Hue = (float) (Hue * 60.0);
                 } else if (Cmax == bPrime) {
-                    Hue = rPrime - gPrime;
+                    Hue = abs(rPrime - gPrime);
                     Hue = Hue / delta;
                     Hue = (float) (Hue + 4.0);
                     Hue = (float) (Hue * 60.0);
                 }
+                saturation = delta / Cmax;
+                lightness = Cmax;
             }
+//            cout << endl;
             /**Red Component**/
-            if (Hue > 340 || Hue < 7) {
+            if ((Hue > 340 || Hue < 7) && lightness > 125 && saturation > 100) {
                 componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
             }
             /**Green Component**/
@@ -352,6 +359,7 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
     }
 
     denominator = (img._nbPixelsHeight * img._nbPixelsWidth * (float) maxValueComponent);
+
     componentRates[idxRedComponent] = (componentRates[idxRedComponent] * 100.0) / denominator;
     componentRates[idxGreenComponent] = (componentRates[idxGreenComponent] * 100.0) / denominator;
     componentRates[idxBlueComponent] = (componentRates[idxBlueComponent] * 100.0) / denominator;
@@ -369,23 +377,32 @@ double *ImageProcessor::getComponentsRatesFromRGB(Image &img) {
     int maxValueComponent = 255;
     int seuil = 80;
     float denominator;
+    componentRates[idxRedComponent] = 0;
+    componentRates[idxGreenComponent] = 0;
+    componentRates[idxBlueComponent] = 0;
 
     for (int i = 0; i < img._nbBytesHeight; i++) {
         for (int j = 0; j < img._nbBytesWidth; j = j + 3) {
             r = img._image[i][j + 0];
             g = img._image[i][j + 1];
             b = img._image[i][j + 2];
-            /**Red Component**/
-            if (g < seuil && b < seuil) {
-                componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
-            }
-            /**Green Component**/
-            if (r < seuil && b < seuil) {
-                componentRates[idxGreenComponent] = componentRates[idxGreenComponent] + g;
-            }
-            /**Blue Component**/
-            if (g < seuil && r < seuil) {
-                componentRates[idxBlueComponent] = componentRates[idxBlueComponent] + b;
+            if (r > 150 && g > 150 && b > 150) {
+                // White color
+            } else if (r < 50 && g < 50 && b < 50) {
+                // Black color
+            } else {
+                /**Red Component**/
+                if (r > 100 && g + b < 200) { // >100  sum<200 //W 200 //N 50
+                    componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
+                }
+                /**Green Component**/
+                if (g > 100 && r + b < 200) {
+                    componentRates[idxGreenComponent] = componentRates[idxGreenComponent] + g;
+                }
+                /**Blue Component**/
+                if (b > 100 && r + g < 200) {
+                    componentRates[idxBlueComponent] = componentRates[idxBlueComponent] + b;
+                }
             }
         }
     }

@@ -2,6 +2,7 @@
 // Created by Dylan on 20/09/2016.
 //
 
+#include <iomanip>
 #include "Image.h"
 #include "ImageProcessor.h"
 
@@ -217,17 +218,19 @@ void Image::saveImageInformations(char *outputFilename) {
     Image sobelSeuil = ip.binarisePGM(sobel, seuil);
     outlineRate = ip.calculOutlineRate(sobelSeuil);
 
-    double * componentsRates = ip.getComponentsRatesFromRGB(*this);
+    double *componentsRates = ip.getComponentsRatesFromRGB(*this);
 
     imageWriter << strType << endl;
     imageWriter << this->_nbPixelsWidth << endl;
     imageWriter << this->_nbPixelsHeight << endl;
     imageWriter << this->_gris << endl;
-    for (int i = 0; i < 256; i++) {
-        imageWriter << hist[i] << " ";
-    }
-    imageWriter << endl;
+//    for (int i = 0; i < 256; i++) {
+//        imageWriter << hist[i] << " ";
+//    }
+//    imageWriter << endl;
     imageWriter << outlineRate << endl;
+    imageWriter << fixed << showpoint;
+    imageWriter << setprecision(4);
     imageWriter << componentsRates[0] << endl;
     imageWriter << componentsRates[1] << endl;
     imageWriter << componentsRates[2] << endl;
