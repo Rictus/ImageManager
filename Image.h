@@ -16,10 +16,20 @@ enum ImageType {
 #pragma message("  ATTENTION : IMAGETYPE ENUMERATION already defined")
 #endif
 
+
+#ifndef TYPE_COORDINATE
+#define TYPE_COORDINATE
+struct Coordinate {
+    long horizontal;
+    long vertical;
+};
+#else
+#pragma message("  ATTENTION : TYPE_COORDINATE already defined")
+#endif
+
 #ifndef BYTE_AS_UNSIGNED_CHAR
 #define BYTE_AS_UNSIGNED_CHAR
 typedef unsigned char byte;
-//#pragma message("typedef unsigned char byte")
 #else
 #pragma message("  ATTENTION : BYTE_AS_UNSIGNED_CHAR already defined")
 #endif
@@ -30,7 +40,7 @@ enum Color {
     WHITE = 255, BLACK = 0
 };
 #else
-//#pragma message("typedef Color")
+#pragma message("  ATTENTION : COLOR already defined")
 #endif
 
 using namespace std;
@@ -57,7 +67,6 @@ public:
 
     std::ofstream writeHeader(string outputFilename);
 
-
 private:
     void readHeader();
 
@@ -69,18 +78,17 @@ private:
 
 public:
 
-    Image(ImageType type, long height, long width, byte **matrix);
+    Image();
 
     Image(char *_filename);
 
     Image(ImageType type, long height, long width);
 
-    Image();
+    Image(ImageType type, long height, long width, byte **matrix);
 
     void close();
 
     byte **initMatrix(long &nbBytesHeight, long &nbBytesWidth);
-
 
     void save(char *outputFilename);
 
@@ -92,6 +100,7 @@ public:
 
     void saveImageInformations(char *outputFilename);
 
+//    Image operator=(const Image &arg);
 };
 
 #endif //IMAGEMANAGER_IMAGEMANAGER_H

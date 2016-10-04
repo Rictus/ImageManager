@@ -55,6 +55,10 @@ public:
     double *getComponentsRatesFromHSV(Image &img);
 
     double *getComponentsRatesFromRGB(Image &img);
+
+    Image interestPoints(Image &img);
+
+    long getRedPixelPositions(Image &img, struct Coordinate *redPixelPositions);
 };
 
 

@@ -161,9 +161,11 @@ void Image::load() { //No longer work properly for PPM
 void Image::save(char *outputFilename, byte **matrix, long &nbBytesHeight, long &nbBytesWidth) {
     // Récupérer le ofstream initialisé par writeHeader
     std::ofstream imageWriter = this->writeHeader(outputFilename);
+    cout << "saving" << endl;
     for (long i = 0; i < nbBytesHeight; i = i + 1) {
         for (long j = 0; j < nbBytesWidth; j = j + 1) {
             imageWriter << matrix[i][j];
+
         }
     }
     imageWriter.close();
@@ -237,3 +239,16 @@ void Image::saveImageInformations(char *outputFilename) {
 
     imageWriter.close();
 }
+
+/*
+Image Image::operator=(const Image &arg) {
+    this->_nbPixelsHeight = arg._nbPixelsHeight;
+    this->_nbPixelsWidth = arg._nbPixelsWidth;
+    this->_nbBytesWidth = arg._nbBytesWidth;
+    this->_nbBytesHeight = arg._nbBytesHeight;
+    this->_image = arg._image;
+    this->_gris = arg._gris;
+    this->_type = arg._type;
+    return *this;
+}
+//*/

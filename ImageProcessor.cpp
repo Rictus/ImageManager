@@ -3,6 +3,7 @@
 //
 
 #include "ImageProcessor.h"
+#include "ImageUtils.h"
 
 Image ImageProcessor::sobelMaskHorizontal(Image &img) {
     long sumH;
@@ -35,30 +36,30 @@ Image ImageProcessor::sobelMaskHorizontal(Image &img) {
 }
 
 Image ImageProcessor::sobelMaskVertical(Image &img) {
-    long sumH;
-    double meanH;
+    long sumV;
+    double meanV;
     Image output(img._type, img._nbPixelsHeight, img._nbPixelsWidth);
     for (long i = 1; i < img._nbPixelsHeight - 1; i = i + 1) {
         for (long j = 1; j < img._nbPixelsWidth - 1; j = j + 1) {
-            sumH = 0;
+            sumV = 0;
 
             //gauche
-            sumH += -1 * img._image[i - 1][j - 1];   //haut gauche
-            sumH += 0 * img._image[i - 1][j];     //centre gauche
-            sumH += 1 * img._image[i - 1][j + 1];   //bas gauche
+            sumV += -1 * img._image[i - 1][j - 1];   //haut gauche
+            sumV += 0 * img._image[i - 1][j];     //centre gauche
+            sumV += 1 * img._image[i - 1][j + 1];   //bas gauche
 
             //centre
-            sumH += -2 * img._image[i][j - 1];     //haut centre
-            sumH += 0 * img._image[i][j];       //centre centre
-            sumH += 2 * img._image[i][j + 1];     //bas centre
+            sumV += -2 * img._image[i][j - 1];     //haut centre
+            sumV += 0 * img._image[i][j];       //centre centre
+            sumV += 2 * img._image[i][j + 1];     //bas centre
 
             //droite
-            sumH += -1 * img._image[i + 1][j - 1];   //haut droite
-            sumH += 0 * img._image[i + 1][j];     //centre droite
-            sumH += 1 * img._image[i + 1][j + 1];   //bas droite
-            meanH = std::floor(abs(sumH) * 256 / 1020);
+            sumV += -1 * img._image[i + 1][j - 1];   //haut droite
+            sumV += 0 * img._image[i + 1][j];     //centre droite
+            sumV += 1 * img._image[i + 1][j + 1];   //bas droite
+            meanV = std::floor(abs(sumV) * 256 / 1020);
 
-            output._image[i][j] = (byte) meanH;
+            output._image[i][j] = (byte) meanV;
         }
     }
     return output;
@@ -125,7 +126,6 @@ Image ImageProcessor::sobelMask(Image &img) {
     return ImageProcessor::sobelMask(img._type, img);
 }
 
-
 /**
  * We wanted to convert a PPM file to PGM using different grayscale formula.
  *
@@ -188,7 +188,7 @@ Image ImageProcessor::binarise(Image &img, long seuil) {
 }
 
 double ImageProcessor::calculOutlineRate(Image &m) {
-    long totalNumberOfPixel = m._nbBytesWidth * m._nbPixelsHeight;
+    long totalNumberOfPixel = m._nbPixelsWidth * m._nbPixelsHeight;
     long totalNumberOfWhitePixel = 0;
     for (long i = 0; i < m._nbPixelsHeight; i = i + 1) {
         for (long j = 0; j < m._nbPixelsWidth; j = j + 1) {
@@ -298,9 +298,6 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
     float Hue = 0;
     float saturation = 0;//TODO We could use saturation/lightness to escape from white/black
     float lightness = 0;
-    float rPrime, gPrime, bPrime;
-    float Cmax, Cmin;
-    float delta;
 
     componentRates[idxRedComponent] = 0;
     componentRates[idxBlueComponent] = 0;
@@ -312,36 +309,12 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
             g = img._image[i][j + 1];
             b = img._image[i][j + 2];
             /**Hue calculation. See : http://www.rapidtables.com/convert/color/rgb-to-hsv.htm**/
-            rPrime = (float) (r / 255.0);
-            gPrime = (float) (g / 255.0);
-            bPrime = (float) (b / 255.0);
-            Cmax = max(max(rPrime, gPrime), bPrime);
-            Cmin = min(min(rPrime, gPrime), bPrime);
-            delta = Cmax - Cmin;
-            if (delta == 0) {
-                Hue = 0;
-                saturation = 0;
-                lightness = Cmax;
-            } else {
-                if (Cmax == rPrime) {
-                    Hue = abs(gPrime - bPrime);
-                    Hue = Hue / delta;
-                    Hue = fmod(Hue, 6.0);
-                    Hue = (float) (Hue * 60.0);
-                } else if (Cmax == gPrime) {
-                    Hue = abs(bPrime - rPrime);
-                    Hue = Hue / delta;
-                    Hue = (float) (Hue + 2.0);
-                    Hue = (float) (Hue * 60.0);
-                } else if (Cmax == bPrime) {
-                    Hue = abs(rPrime - gPrime);
-                    Hue = Hue / delta;
-                    Hue = (float) (Hue + 4.0);
-                    Hue = (float) (Hue * 60.0);
-                }
-                saturation = delta / Cmax;
-                lightness = Cmax;
-            }
+            int *HSVTable = RGBToHSV(r, g, b);
+            Hue = HSVTable[0];
+            saturation = HSVTable[1];
+            lightness = HSVTable[2];
+
+
 //            cout << endl;
             /**Red Component**/
             if ((Hue > 340 || Hue < 7) && lightness > 125 && saturation > 100) {
@@ -367,7 +340,6 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
     return componentRates;
 }
 
-
 double *ImageProcessor::getComponentsRatesFromRGB(Image &img) {
     double *componentRates = new double[3];
     int idxRedComponent = 0;
@@ -392,7 +364,7 @@ double *ImageProcessor::getComponentsRatesFromRGB(Image &img) {
                 // Black color
             } else {
                 /**Red Component**/
-                if (r > 100 && g + b < 200) { // >100  sum<200 //W 200 //N 50
+                if (r > 100 && g + b < 200) {
                     componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
                 }
                 /**Green Component**/
@@ -413,4 +385,168 @@ double *ImageProcessor::getComponentsRatesFromRGB(Image &img) {
     componentRates[idxBlueComponent] = (componentRates[idxBlueComponent] * 100.0) / denominator;
 
     return componentRates;
+}
+
+Image ImageProcessor::interestPoints(Image &img) { //Do not work for PGM for now...
+
+    long sumH, sumV, sumN;
+    double Ix, Iy;
+    //      <Ix²>      <Iy²>
+    double IConvHor, IConvVer;
+    double IConvHorSquare, IConvVerSquare;
+    double k;
+//    Image imgProcess = Image(img);
+//    if (img._type == ImageType::P6) {
+    Image imgProcess = this->convertPPMToPGM(GrayscaleConvertionAlgorithm::LUMINOSITY, img);
+//    }
+
+    for (int i = 1; i < imgProcess._nbPixelsHeight - 1; i++) {
+        for (int j = 1; j < imgProcess._nbPixelsWidth - 1; j++) {
+            sumH = 0;
+            sumV = 0;
+
+            /**Gradient Horizontal**/
+            //gauche
+            sumH += -1 * imgProcess._image[i - 1][j - 1];   //haut
+            sumH += -2 * imgProcess._image[i - 1][j];     //centre
+            sumH += -1 * imgProcess._image[i - 1][j + 1];   //bas
+
+            //centre
+            sumH += 0 * imgProcess._image[i][j - 1];     //haut
+            sumH += 0 * imgProcess._image[i][j];       //centre
+            sumH += 0 * imgProcess._image[i][j + 1];     //bas
+
+            //droite
+            sumH += 1 * imgProcess._image[i + 1][j - 1];   //haut
+            sumH += 2 * imgProcess._image[i + 1][j];     //centre
+            sumH += 1 * imgProcess._image[i + 1][j + 1];   //bas
+            Ix = std::floor(abs(sumH) * 256.0 / 1020.0);
+
+            /**Gradient Vertical**/
+            sumN = 0;
+            //gauche
+            sumV += -1 * img._image[i - 1][j - 1];   //haut gauche
+            sumV += 0 * img._image[i - 1][j];     //centre gauche
+            sumV += 1 * img._image[i - 1][j + 1];   //bas gauche
+
+            //centre
+            sumV += -2 * img._image[i][j - 1];     //haut centre
+            sumV += 0 * img._image[i][j];       //centre centre
+            sumV += 2 * img._image[i][j + 1];     //bas centre
+
+            //droite
+            sumV += -1 * img._image[i + 1][j - 1];   //haut droite
+            sumV += 0 * img._image[i + 1][j];     //centre droite
+            sumV += 1 * img._image[i + 1][j + 1];   //bas droite
+            Iy = std::floor(abs(sumV) * 256 / 1020);
+
+            /**Convolution avec le voisinage (Ix:Gradient horizontal) : <Ix²>**/
+            sumN = 0;
+            //gauche
+            sumN += 1 * Ix * Ix;
+            sumN += 1 * Ix * Ix;
+            sumN += 1 * Ix * Ix;
+
+            //centre
+            sumN += 1 * Ix * Ix;
+            sumN += 0 * Ix * Ix;
+            sumN += 1 * Ix * Ix;
+
+            //droite
+            sumN += 1 * Ix * Ix;
+            sumN += 1 * Ix * Ix;
+            sumN += 1 * Ix * Ix;
+            IConvHorSquare = std::floor(abs(sumN) * 256 / (8.0 * 255.0));
+
+            /**Convolution avec le voisinage (Ix:Gradient vertical) : <Iy²>**/
+            //gauche
+            sumN += 1 * Iy * Iy;
+            sumN += 1 * Iy * Iy;
+            sumN += 1 * Iy * Iy;
+
+            //centre
+            sumN += 1 * Iy * Iy;
+            sumN += 0 * Iy * Iy;
+            sumN += 1 * Iy * Iy;
+
+            //droite
+            sumN += 1 * Iy * Iy;
+            sumN += 1 * Iy * Iy;
+            sumN += 1 * Iy * Iy;
+            IConvVerSquare = std::floor(abs(sumN) * 256 / (8.0 * 255.0));
+
+
+            /**Convolution avec le voisinage (Ix:Gradient horizontal) : <Ix>**/
+            sumN = 0;
+            //gauche
+            sumN += 1 * Ix;
+            sumN += 1 * Ix;
+            sumN += 1 * Ix;
+
+            //centre
+            sumN += 1 * Ix;
+            sumN += 0 * Ix;
+            sumN += 1 * Ix;
+
+            //droite
+            sumN += 1 * Ix;
+            sumN += 1 * Ix;
+            sumN += 1 * Ix;
+            IConvHor = std::floor(abs(sumN) * 256 / (8.0 * 255.0));
+
+            /**Convolution avec le voisinage (Ix:Gradient vertical) : <Iy>**/
+            //gauche
+            sumN += 1 * Iy;
+            sumN += 1 * Iy;
+            sumN += 1 * Iy;
+
+            //centre
+            sumN += 1 * Iy;
+            sumN += 0 * Iy;
+            sumN += 1 * Iy;
+
+            //droite
+            sumN += 1 * Iy;
+            sumN += 1 * Iy;
+            sumN += 1 * Iy;
+            IConvVer = std::floor(abs(sumN) * 256 / (8.0 * 255.0));
+
+            k = Ix * Ix * IConvVerSquare + Iy * Iy * IConvHorSquare - 2 * Ix * Iy * IConvHor * IConvVer;
+            k = k / (IConvHorSquare + IConvVerSquare);
+
+            if (!isnan(k) && k > 5000) {
+                imgProcess._image[i][j] = 0;
+                cout << "At (" << j << ", " << i << ") : k=" << k << endl;
+            }
+        }
+    }
+    return imgProcess;
+}
+
+long ImageProcessor::getRedPixelPositions(Image &img, Coordinate *redPixelPositions) {
+    int H = 0, S = 0, V = 0, R = 0, G = 0, B = 0;
+    int *HSVTable = new int[3];
+    redPixelPositions = new Coordinate[img._nbPixelsHeight * img._nbPixelsWidth];
+    long nbRedPixelFound = 0;
+    if (img._type != ImageType::P6) {
+        cerr << "ImageProcessor::getRedPixelPositions : Can't process non-ppm image : Need ppm." << endl;
+    }
+
+    for (int i = 0; i < img._nbBytesHeight; i++) {
+        for (int j = 0; j < img._nbBytesWidth; j = j + 3) {
+            R = img._image[i][j + 0];
+            G = img._image[i][j + 1];
+            B = img._image[i][j + 2];
+            HSVTable = RGBToHSV(R, G, B);
+            H = HSVTable[0];
+            S = HSVTable[1];
+            V = HSVTable[2];
+
+            if (isRed(H, S, V)) {
+                redPixelPositions[nbRedPixelFound] = {horizontal:(long) j, vertical:(long) i};
+                nbRedPixelFound = nbRedPixelFound + 1;
+            }
+        }
+    }
+    return nbRedPixelFound;
 }
