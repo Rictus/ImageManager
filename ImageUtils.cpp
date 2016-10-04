@@ -51,38 +51,81 @@ int *RGBToHSV(int r, int g, int b) {
     return output;
 }
 
-bool isRed(const int H, const int S, const int V) {
+/**
+ * This function is 100x slower than isColor_Hardcoded. Don't use it for real time stuff
+ * @param H
+ * @param S
+ * @param V
+ * @param color
+ * @return
+ */
+bool isColor(int H, int S, int V, Color color) {
+    /**It might be better to use unordered_map instead of map for O(1) access.**/
+    map<string, int> redThresholds;
+    redThresholds["HAS_TWO_THRESHOLDS"] = 1;
+    redThresholds["FIRST_THRESHOLD_H_MIN"] = 0;
+    redThresholds["FIRST_THRESHOLD_S_MIN"] = 125;
+    redThresholds["FIRST_THRESHOLD_V_MIN"] = 107;
+    redThresholds["FIRST_THRESHOLD_H_MAX"] = 30;
+    redThresholds["FIRST_THRESHOLD_S_MAX"] = 255;
+    redThresholds["FIRST_THRESHOLD_V_MAX"] = 255;
+    redThresholds["SECOND_THRESHOLD_H_MIN"] = 330;
+    redThresholds["SECOND_THRESHOLD_S_MIN"] = 199;
+    redThresholds["SECOND_THRESHOLD_V_MIN"] = 157;
+    redThresholds["SECOND_THRESHOLD_H_MAX"] = 360;
+    redThresholds["SECOND_THRESHOLD_S_MAX"] = 255;
+    redThresholds["SECOND_THRESHOLD_V_MAX"] = 255;
+    map<Color, map<string, int>> THRESHOLDS;
+    THRESHOLDS[Color::RED] = redThresholds;
 
-    //first: 0-26, 125-255, 107-255
-    //second: 330/360, 199-255, 157-255
-    // We need to check twice because Red color is on both extremities of chromatic HSV circle.
-    const int FIRST_THRESHOLD_H_MIN = 0;
-    const int FIRST_THRESHOLD_S_MIN = 125;
-    const int FIRST_THRESHOLD_V_MIN = 107;
-
-    const int FIRST_THRESHOLD_H_MAX = 26;
-    const int FIRST_THRESHOLD_S_MAX = 255;
-    const int FIRST_THRESHOLD_V_MAX = 255;
-
-    const int SECOND_THRESHOLD_H_MIN = 330;
-    const int SECOND_THRESHOLD_S_MIN = 199;
-    const int SECOND_THRESHOLD_V_MIN = 157;
-
-    const int SECOND_THRESHOLD_H_MAX = 360;
-    const int SECOND_THRESHOLD_S_MAX = 255;
-    const int SECOND_THRESHOLD_V_MAX = 255;
-
-    if (H >= FIRST_THRESHOLD_H_MIN && H <= FIRST_THRESHOLD_H_MAX &&
-        S >= FIRST_THRESHOLD_S_MIN && S >= FIRST_THRESHOLD_S_MAX &&
-        V >= FIRST_THRESHOLD_V_MIN && V <= FIRST_THRESHOLD_V_MAX) {
-        return true;
+    switch (color) {
+        case Color::RED:
+            if (H >= THRESHOLDS[color]["FIRST_THRESHOLD_H_MIN"] &&
+                H <= THRESHOLDS[color]["FIRST_THRESHOLD_H_MAX"] &&
+                S >= THRESHOLDS[color]["FIRST_THRESHOLD_S_MIN"] &&
+                S <= THRESHOLDS[color]["FIRST_THRESHOLD_S_MAX"] &&
+                V >= THRESHOLDS[color]["FIRST_THRESHOLD_V_MIN"] &&
+                V <= THRESHOLDS[color]["FIRST_THRESHOLD_V_MAX"]) {
+                return true;
+            }
+            if (THRESHOLDS[color]["HAS_TWO_THRESHOLDS"] == 1) {
+                if (H >= THRESHOLDS[color]["SECOND_THRESHOLD_H_MIN"] &&
+                    H <= THRESHOLDS[color]["SECOND_THRESHOLD_H_MAX"] &&
+                    S >= THRESHOLDS[color]["SECOND_THRESHOLD_S_MIN"] &&
+                    S <= THRESHOLDS[color]["SECOND_THRESHOLD_S_MAX"] &&
+                    V >= THRESHOLDS[color]["SECOND_THRESHOLD_V_MIN"] &&
+                    V <= THRESHOLDS[color]["SECOND_THRESHOLD_V_MAX"]) {
+                    return true;
+                }
+            }
+            break;
+        default:
+            cerr << "This color is not yet suported : " << color << endl;
+            return false;
+            break;
     }
+    return false;
+}
 
-    if (H >= SECOND_THRESHOLD_H_MIN && H <= SECOND_THRESHOLD_H_MAX &&
-        S >= SECOND_THRESHOLD_S_MIN && S >= SECOND_THRESHOLD_S_MAX &&
-        V >= SECOND_THRESHOLD_V_MIN && V <= SECOND_THRESHOLD_V_MAX) {
-        return true;
+
+bool isColor_Hardcoded(int H, int S, int V, Color color) {
+    switch (color) {
+        case Color::RED:
+            if ((H >= 0 && H <= 30 &&
+                 S >= 125 && S <= 225 &&
+                 V >= 107 && V <= 255)) {
+                return true;
+            }
+            if ((H >= 330 && H <= 360 &&
+                 S >= 199 && S <= 255 &&
+                 V >= 157 && V <= 255)) {
+                return true;
+            }
+            break;
+        default:
+            cerr << "This color is not yet suported : " << color << endl;
+            return false;
+            break;
     }
-
     return false;
 }

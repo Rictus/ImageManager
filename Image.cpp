@@ -92,7 +92,7 @@ void Image::readHeader() {
         _nbBytesWidth = this->_nbPixelsWidth;
     } else if (this->_type == ImageType::P6) {
         // * 3 because a pixel is composed of 3 bytes (rgb)
-        _nbBytesHeight = this->_nbPixelsHeight * 3;
+        _nbBytesHeight = this->_nbPixelsHeight ;
         _nbBytesWidth = this->_nbPixelsWidth * 3;
     } else {
         cerr << "Unknown file type : " << this->_type;
@@ -145,7 +145,7 @@ void Image::close() {
     _imageReader.close();
 }
 
-void Image::load() { //No longer work properly for PPM
+void Image::load() {
     byte b;
 //    _imageReader.open(_filename, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
     long i, j;
@@ -161,11 +161,9 @@ void Image::load() { //No longer work properly for PPM
 void Image::save(char *outputFilename, byte **matrix, long &nbBytesHeight, long &nbBytesWidth) {
     // Récupérer le ofstream initialisé par writeHeader
     std::ofstream imageWriter = this->writeHeader(outputFilename);
-    cout << "saving" << endl;
     for (long i = 0; i < nbBytesHeight; i = i + 1) {
         for (long j = 0; j < nbBytesWidth; j = j + 1) {
             imageWriter << matrix[i][j];
-
         }
     }
     imageWriter.close();

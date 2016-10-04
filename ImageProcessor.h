@@ -58,7 +58,9 @@ public:
 
     Image interestPoints(Image &img);
 
-    long getRedPixelPositions(Image &img, struct Coordinate *redPixelPositions);
+    long getRedPixelPositions(Image &img, struct ImageCoordinate *redPixelPositions);
+
+    ImageCoordinate getBarycenterOfPoints(ImageCoordinate *points, int nbPoints);
 };
 
 

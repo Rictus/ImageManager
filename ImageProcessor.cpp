@@ -523,30 +523,50 @@ Image ImageProcessor::interestPoints(Image &img) { //Do not work for PGM for now
     return imgProcess;
 }
 
-long ImageProcessor::getRedPixelPositions(Image &img, Coordinate *redPixelPositions) {
+long ImageProcessor::getRedPixelPositions(Image &img, ImageCoordinate *redPixelPositions) {
     int H = 0, S = 0, V = 0, R = 0, G = 0, B = 0;
     int *HSVTable = new int[3];
-    redPixelPositions = new Coordinate[img._nbPixelsHeight * img._nbPixelsWidth];
+//    redPixelPositions = new ImageCoordinate[img._nbPixelsHeight * img._nbPixelsWidth];
     long nbRedPixelFound = 0;
     if (img._type != ImageType::P6) {
         cerr << "ImageProcessor::getRedPixelPositions : Can't process non-ppm image : Need ppm." << endl;
     }
 
-    for (int i = 0; i < img._nbBytesHeight; i++) {
-        for (int j = 0; j < img._nbBytesWidth; j = j + 3) {
-            R = img._image[i][j + 0];
-            G = img._image[i][j + 1];
-            B = img._image[i][j + 2];
+    for (int i = 0; i < img._nbPixelsHeight; i++) {
+        for (int j = 0; j < img._nbPixelsWidth; j++) {
+            R = img._image[i][3 * j + 0];
+            G = img._image[i][3 * j + 1];
+            B = img._image[i][3 * j + 2];
             HSVTable = RGBToHSV(R, G, B);
             H = HSVTable[0];
             S = HSVTable[1];
             V = HSVTable[2];
 
-            if (isRed(H, S, V)) {
+            if (isColor_Hardcoded(H, S, V, Color::RED)) {
                 redPixelPositions[nbRedPixelFound] = {horizontal:(long) j, vertical:(long) i};
                 nbRedPixelFound = nbRedPixelFound + 1;
             }
         }
     }
     return nbRedPixelFound;
+}
+
+ImageCoordinate ImageProcessor::getBarycenterOfPoints(ImageCoordinate *points, int nbPoints) {
+    ImageCoordinate barycenter;
+
+    long sumX = 0, sumY = 0;
+    double meanX, meanY;
+
+    for (int i = 0; i < nbPoints; i++) {
+        double a = points[i].horizontal;
+        double b = points[i].vertical;
+        sumX += points[i].horizontal;
+        sumY += points[i].vertical;
+    }
+
+    meanX = sumX / (float) nbPoints;
+    meanY = sumY / (float) nbPoints;
+
+    barycenter = {horizontal:(long) meanX, vertical:(long) meanY};
+    return barycenter;
 }

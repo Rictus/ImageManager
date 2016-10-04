@@ -17,19 +17,17 @@ int main(int argc, char *argv[]) {
         cout << argv[1] << endl;
         Image im(argv[1]);
         ImageProcessor ip;
-        struct Coordinate *redPixelPositions = new Coordinate[im._nbBytesHeight * im._nbBytesWidth];
+        struct ImageCoordinate *redPixelPositions = new struct ImageCoordinate[im._nbPixelsHeight * im._nbPixelsWidth];
         long nbRedPixelFound = ip.getRedPixelPositions(im, redPixelPositions);
-        for (long i = 0; i < 10; i = i + 1) {
-            cout << redPixelPositions[i].horizontal << "," << redPixelPositions[i].vertical << endl;
-        }
+        for (long i = 0; i < nbRedPixelFound; i = i + 1) {
+            im._image[redPixelPositions[i].vertical][3 * redPixelPositions[i].horizontal] = 0;
+            im._image[redPixelPositions[i].vertical][3 * redPixelPositions[i].horizontal + 1] = 0;
+            im._image[redPixelPositions[i].vertical][3 * redPixelPositions[i].horizontal + 2] = 0;
+        }//*/
+        ImageCoordinate barycenter = ip.getBarycenterOfPoints(redPixelPositions, (int) nbRedPixelFound);
+        cout << "Barycenter : (x,y)=(" << barycenter.horizontal << ", " << barycenter.vertical << ") " << endl;
+        im.save(argv[2]);
         cout << endl;
     }
     return 0;
-}
-
-void testDetectRed(char *file) {
-    ImageProcessor ip;
-    Image im(file);
-    Image interestPointsImage = ip.interestPoints(im);
-    interestPointsImage.save("C:\\Users\\Dylan\\ClionProjects\\ImageManager\\imagesres\\redinwhite_points.pgm");
 }

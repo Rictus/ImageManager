@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cmath>
 #include <sstream>
+#include <map>
 #include "FileException.h"
 
 #ifndef IMAGETYPE_ENUMDEFINE
@@ -19,7 +20,7 @@ enum ImageType {
 
 #ifndef TYPE_COORDINATE
 #define TYPE_COORDINATE
-struct Coordinate {
+struct ImageCoordinate {
     long horizontal;
     long vertical;
 };
@@ -37,7 +38,7 @@ typedef unsigned char byte;
 #ifndef COLOR_DEFINE
 #define COLOR_DEFINE
 enum Color {
-    WHITE = 255, BLACK = 0
+    WHITE = 255, BLACK = 0, RED=200
 };
 #else
 #pragma message("  ATTENTION : COLOR already defined")

@@ -7,7 +7,10 @@
 
 #include <iostream>
 #include <cmath>
+#include "Image.h"
+
 int *RGBToHSV(int r, int g, int b);
 
-bool isRed(const int H, const int S, const int V);
+bool isColor(int H, int S, int V, Color color);
+bool isColor_Hardcoded(int H, int S, int V, Color color);
 #endif //IMAGEMANAGER_IMAGEUTILS_H
