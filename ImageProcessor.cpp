@@ -308,14 +308,11 @@ double *ImageProcessor::getComponentsRatesFromHSV(Image &img) {
             r = img._image[i][j + 0];
             g = img._image[i][j + 1];
             b = img._image[i][j + 2];
-            /**Hue calculation. See : http://www.rapidtables.com/convert/color/rgb-to-hsv.htm**/
             int *HSVTable = RGBToHSV(r, g, b);
             Hue = HSVTable[0];
             saturation = HSVTable[1];
             lightness = HSVTable[2];
 
-
-//            cout << endl;
             /**Red Component**/
             if ((Hue > 340 || Hue < 7) && lightness > 125 && saturation > 100) {
                 componentRates[idxRedComponent] = componentRates[idxRedComponent] + r;
@@ -526,7 +523,6 @@ Image ImageProcessor::interestPoints(Image &img) { //Do not work for PGM for now
 long ImageProcessor::getRedPixelPositions(Image &img, ImageCoordinate *redPixelPositions) {
     int H = 0, S = 0, V = 0, R = 0, G = 0, B = 0;
     int *HSVTable = new int[3];
-//    redPixelPositions = new ImageCoordinate[img._nbPixelsHeight * img._nbPixelsWidth];
     long nbRedPixelFound = 0;
     if (img._type != ImageType::P6) {
         cerr << "ImageProcessor::getRedPixelPositions : Can't process non-ppm image : Need ppm." << endl;

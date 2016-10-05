@@ -107,12 +107,11 @@ bool isColor(int H, int S, int V, Color color) {
     return false;
 }
 
-
 bool isColor_Hardcoded(int H, int S, int V, Color color) {
     switch (color) {
         case Color::RED:
             if ((H >= 0 && H <= 30 &&
-                 S >= 125 && S <= 225 &&
+                 S >= 125 && S <= 255 &&
                  V >= 107 && V <= 255)) {
                 return true;
             }
